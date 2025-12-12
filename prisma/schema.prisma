@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider   = "prisma-client-js"
+  output     = "../generated/prisma"
+  engineType = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  passwordHash  String
+  emailVerified DateTime?
+  image         String?
+
+  // Usage & Billing
+  credits Int      @default(100)
+  plan    PlanType @default(FREE)
+
+  // Relations
+  projects     Project[]
+  transactions Transaction[]
+  tokens       Token[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Token {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alias     String?  @default("Default")
+  token     String
+  createdAt DateTime @default(now())
+  expiry    DateTime
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  slug        String
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Relations
+  contents GeneratedContent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, slug])
+}
+
+model GeneratedContent {
+  id String @id @default(cuid())
+
+  // Template Info
+  templateId String // e.g., 'linkedin-post', 'blog-article'
+
+  // Data
+  inputData  Json // Stores the form inputs { topic: "...", tone: "..." }
+  outputText String @db.Text // The actual AI generated text
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+model Transaction {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  amount Int // Credits added or removed
+  type   TransactionType // CREDIT_PURCHASE or USAGE
+
+  createdAt DateTime @default(now())
+}
+
+enum PlanType {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum TransactionType {
+  CREDIT_PURCHASE
+  USAGE
+  BONUS
+}

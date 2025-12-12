@@ -1,0 +1,162 @@
+'use client'
+
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { motion } from 'framer-motion'
+import { Mail, Lock, User } from 'lucide-react'
+import { useActionState, useState, startTransition } from 'react'
+import axios from 'axios'
+import { z } from 'zod'
+
+const registerSchema = z.object({
+    email: z.email({
+        message: "Invalid email address",
+    }),
+    password: z.string().min(6, {
+        message: "Password must be at least 6 characters long",
+    }),
+    name: z.string().min(3, {
+        message: "Name must be at least 3 characters long",
+    }),
+});
+
+async function signupAction(prevState: any, credentials: unknown) {
+    const validatedFields = registerSchema.safeParse(credentials)
+
+    if (!validatedFields.success) {
+        return {
+            success: false,
+            error: validatedFields.error.issues[0].message,
+        }
+    }
+
+    try {
+        const res = await axios.post('/api/register', credentials)
+        return { success: true, data: res.data }
+    } catch (err: any) {
+        return { success: false, error: err.response?.data || 'Signup failed' }
+    }
+}
+
+export default function SignupPage() {
+    const [credentials, setCredentials] = useState({
+        name: '',
+        email: '',
+        password: ''
+    })
+
+    const [state, formAction] = useActionState(signupAction, {
+        success: false,
+        error: null
+    })
+
+    const handleSubmit = () => {
+        startTransition(() => {
+            formAction(credentials)
+        })
+    }
+
+    return (
+        <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-background">
+            <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+            <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="relative w-full max-w-md p-8 mx-4"
+            >
+                <div className="glass rounded-2xl border border-white/5 p-8 shadow-2xl space-y-8 backdrop-blur-xl">
+                    <div className="text-center space-y-2">
+                        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-primary/10 text-primary mb-4 border border-primary/20">
+                            <User className="w-6 h-6" />
+                        </div>
+                        <h1 className="text-3xl font-bold tracking-tight text-white">Create Account</h1>
+                        <p className="text-muted-foreground">Start generating amazing content</p>
+                    </div>
+
+                    <form
+                        className="space-y-6"
+                        action={handleSubmit}
+                        onSubmit={(e) => {
+                            e.preventDefault()
+                            handleSubmit()
+                        }}
+                    >
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-300 ml-1" htmlFor="name">Full Name</label>
+                                <div className="relative">
+                                    <User className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                                    <Input
+                                        id="name"
+                                        type="text"
+                                        placeholder="John Doe"
+                                        value={credentials.name}
+                                        onChange={(e) => setCredentials({ ...credentials, name: e.target.value })}
+                                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:bg-white/10 transition-all"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-300 ml-1" htmlFor="email">Email</label>
+                                <div className="relative">
+                                    <Mail className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        placeholder="hello@example.com"
+                                        value={credentials.email}
+                                        onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
+                                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:bg-white/10 transition-all"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-300 ml-1" htmlFor="password">Password</label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-2.5 h-5 w-5 text-muted-foreground" />
+                                    <Input
+                                        id="password"
+                                        type="password"
+                                        placeholder="Create a password"
+                                        value={credentials.password}
+                                        onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                                        className="pl-10 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:bg-white/10 transition-all"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <Button className="w-full h-11 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20" size="lg">
+                            Create Account
+                        </Button>
+
+                    </form>
+
+                    {state.error && (
+                        <p className="text-red-400 text-center text-sm pt-2">{state.error}</p>
+                    )}
+
+                    {state.success && (
+                        <p className="text-green-400 text-center text-sm pt-2">Account created!</p>
+                    )}
+
+                    <div className="text-center text-sm text-muted-foreground pt-2">
+                        Already have an account?{' '}
+                        <Link href="/login" className="text-primary hover:text-primary/80 font-medium hover:underline underline-offset-4 transition-colors">
+                            Sign in
+                        </Link>
+                    </div>
+                </div>
+            </motion.div>
+        </div>
+    )
+}
