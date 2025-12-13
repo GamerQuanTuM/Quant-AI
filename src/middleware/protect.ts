@@ -6,7 +6,7 @@ interface CustomJwtPayload extends jwt.JwtPayload {
     userId: string;
 }
 
-type Handler = (req: Request, userId: string) => Promise<NextResponse> | NextResponse;
+type Handler = (req: Request, userId: string) => Promise<NextResponse> | NextResponse | Response | Promise<Response> ;
 
 function isCustomJwtPayload(decoded: string | jwt.JwtPayload): decoded is CustomJwtPayload {
     return (decoded as CustomJwtPayload).userId !== undefined;

@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { motion } from 'framer-motion'
 import { Mail, Lock, User } from 'lucide-react'
-import { useActionState, useState, startTransition } from 'react'
+import { useActionState, useState, startTransition, useEffect } from 'react'
 import axios from 'axios'
 import { z } from 'zod'
+import { useRouter } from 'next/navigation'
 
 const registerSchema = z.object({
     email: z.email({
@@ -40,6 +41,8 @@ async function signupAction(prevState: any, credentials: unknown) {
 }
 
 export default function SignupPage() {
+
+    const router = useRouter()
     const [credentials, setCredentials] = useState({
         name: '',
         email: '',
@@ -56,6 +59,12 @@ export default function SignupPage() {
             formAction(credentials)
         })
     }
+
+    useEffect(() => {
+        if (state.success) {
+            router.push('/login')
+        }
+    }, [state.success, router])
 
     return (
         <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-background">

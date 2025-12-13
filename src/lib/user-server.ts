@@ -1,6 +1,17 @@
 import { cookies } from "next/headers"
+import { Project, User } from "../../generated/prisma"
+import { GeneratedContent } from "@prisma/client"
 
-export const getServerUser = async () => {
+type UserWithProjects = User & {
+    projects: (Project & {
+        contents: GeneratedContent[]
+    })[]
+}
+export async function getServerUser<T extends boolean | undefined>(
+    options?: { projects: T }
+): Promise<
+    T extends true ? UserWithProjects | null : User | null
+>{
     try {
         const cookieStore = await cookies()
         const token = cookieStore.get("token")
@@ -9,11 +20,12 @@ export const getServerUser = async () => {
             return null
         }
 
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/me`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/me?projects=${options?.projects}`, {
             headers: {
                 Cookie: `token=${token.value}`,
                 Authorization: `Bearer ${token.value}`
             },
+
             cache: 'no-store'
         })
 

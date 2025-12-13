@@ -40,7 +40,6 @@ export default function ProjectDetailsPage() {
     const [selectedContent, setSelectedContent] = useState<typeof dummyContent[0] | null>(null)
     const [isCopied, setIsCopied] = useState(false)
 
-    // Format slug back to title for display (e.g. q1-marketing -> Q1 Marketing)
     const projectTitle = (params.slug as string).replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 
     const handleCopy = () => {

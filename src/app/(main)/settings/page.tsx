@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { User, CreditCard, Bell, Key, Shield, Mail, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth'
 import axiosInstance from '@/lib/axios-instance'
+import { Token } from '../../../../generated/prisma'
 
 const tabs = [
     { id: 'general', label: 'General', icon: User },
@@ -23,19 +24,65 @@ export default function SettingsPage() {
     const [showGenerateModal, setShowGenerateModal] = useState(false)
     const [keyAlias, setKeyAlias] = useState('Default')
     const [isGenerating, setIsGenerating] = useState(false)
+    const [tokens, setTokens] = useState<Token[] | null>(null)
+    const [generatedToken, setGeneratedToken] = useState<string | null>(null)
+    const [isCopied, setIsCopied] = useState(false)
+    const [keyToRevoke, setKeyToRevoke] = useState<Token | null>(null)
 
     const handleGenerateKey = async () => {
         setIsGenerating(true)
         try {
-            await axiosInstance.post('/api/generate-token', { alias: keyAlias })
-            setShowGenerateModal(false)
-            setKeyAlias('Default')
+            const res = await axiosInstance.post('/api/generate-token', { alias: keyAlias })
+            setGeneratedToken(res.data.token) // Display the token
+            fetchUserTokens() // Refresh list
         } catch (error) {
             console.error('Failed to generate key', error)
         } finally {
             setIsGenerating(false)
         }
     }
+
+    const handleRevokeKey = async () => {
+        if (!keyToRevoke) return;
+        try {
+            await axiosInstance.delete('/api/token', {
+                data: {
+                    tokenId: keyToRevoke.id
+                }
+            })
+            setTokens(tokens?.filter(t => t.id !== keyToRevoke.id) || null)
+            setKeyToRevoke(null)
+        } catch (error) {
+            console.error('Failed to revoke key', error)
+        }
+    }
+
+    const handleCopyToken = () => {
+        if (generatedToken) {
+            navigator.clipboard.writeText(generatedToken)
+            setIsCopied(true)
+            setTimeout(() => setIsCopied(false), 2000)
+        }
+    }
+
+    const handleCloseModal = () => {
+        setShowGenerateModal(false)
+        setGeneratedToken(null)
+        setKeyAlias('Default')
+        setIsCopied(false)
+    }
+
+    const fetchUserTokens = async () => {
+        const response = await axiosInstance.get('/api/token');
+        setTokens(response.data)
+    };
+
+    useEffect(() => {
+        fetchUserTokens()
+    }, [])
+
+    console.log(tokens)
+
 
     return (
         <div className="max-w-6xl mx-auto space-y-8">
@@ -150,19 +197,23 @@ export default function SettingsPage() {
                                 <h3 className="text-lg font-medium text-white">API Keys</h3>
                                 <p className="text-sm text-gray-400">Manage your API keys to access the platform programmatically.</p>
 
-                                <div className="p-4 border border-[#27272a] rounded-xl bg-zinc-900/50 space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-sm font-medium text-white">Production Key</p>
-                                            <p className="text-xs text-gray-500">Created on Dec 12, 2025</p>
+                                {tokens?.map((token) => (
+                                    <div key={token.id} className="p-4 border border-[#27272a] rounded-xl bg-zinc-900/50 space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-sm font-medium text-white">{token?.alias}</p>
+                                                <p className="text-xs text-gray-500 mt-1">Created on {new Date(token?.createdAt).toLocaleDateString()}</p>
+                                            </div>
+                                            <Button size="sm" className="h-8 bg-red-600 hover:bg-red-700 text-white" onClick={() => setKeyToRevoke(token)}>Revoke</Button>
                                         </div>
-                                        <Button size="sm" className="h-8 bg-red-600 hover:bg-red-700 text-white">Revoke</Button>
+                                        <div className="flex items-center gap-2">
+                                            <input readOnly value={`${token?.token.substring(0,100)}...`} className="flex h-10 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs font-mono text-gray-400 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50" />
+                                            <Button variant="outline" size="icon" className="shrink-0 border-[#27272a] text-gray-400"><CreditCard className="w-4 h-4" /></Button>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <input readOnly value="sk_live_51M..." className="flex h-10 w-full rounded-md border border-zinc-800 bg-zinc-950 px-3 py-2 text-xs font-mono text-gray-400 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50" />
-                                        <Button variant="outline" size="icon" className="shrink-0 border-[#27272a] text-gray-400"><CreditCard className="w-4 h-4" /></Button>
-                                    </div>
-                                </div>
+                                ))}
+
+
 
                                 <Button
                                     onClick={() => setShowGenerateModal(true)}
@@ -196,7 +247,7 @@ export default function SettingsPage() {
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
                                         exit={{ opacity: 0 }}
-                                        onClick={() => setShowGenerateModal(false)}
+                                        onClick={handleCloseModal}
                                         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
                                     />
                                     <motion.div
@@ -211,37 +262,106 @@ export default function SettingsPage() {
                                             </div>
                                             <div>
                                                 <h3 className="text-lg font-bold text-white">Generate New API Key</h3>
-                                                <p className="text-sm text-gray-400">Enter a name for your new key.</p>
+                                                <p className="text-sm text-gray-400">
+                                                    {generatedToken ? "Your token has been generated successfully." : "Enter a name for your new key."}
+                                                </p>
                                             </div>
                                         </div>
 
-                                        <div className="space-y-4">
-                                            <div>
-                                                <label className="text-sm font-medium text-gray-300">Key Alias</label>
-                                                <Input
-                                                    value={keyAlias}
-                                                    onChange={(e) => setKeyAlias(e.target.value)}
-                                                    placeholder="e.g. Development"
-                                                    className="bg-zinc-900 border-zinc-800 text-white placeholder:text-gray-600 mt-2"
-                                                />
+                                        {generatedToken ? (
+                                            <div className="space-y-4">
+                                                <div className="p-4 bg-zinc-900 rounded-lg border border-zinc-800 break-all font-mono text-sm text-primary">
+                                                    {generatedToken}
+                                                </div>
+                                                <p className="text-xs text-amber-500">
+                                                    Make sure to copy your personal access token now. You won't be able to see it again!
+                                                </p>
+                                                <div className="flex justify-end gap-3 pt-2">
+                                                    <Button variant="outline" onClick={handleCopyToken} className="border-[#27272a] text-white hover:bg-[#27272a]">
+                                                        {isCopied ? "Copied!" : "Copy Token"}
+                                                    </Button>
+                                                    <Button className="bg-primary hover:bg-primary/90 text-white" onClick={handleCloseModal}>
+                                                        Done
+                                                    </Button>
+                                                </div>
                                             </div>
+                                        ) : (
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="text-sm font-medium text-gray-300">Key Alias</label>
+                                                    <Input
+                                                        value={keyAlias}
+                                                        onChange={(e) => setKeyAlias(e.target.value)}
+                                                        placeholder="e.g. Development"
+                                                        className="bg-zinc-900 border-zinc-800 text-white placeholder:text-gray-600 mt-2"
+                                                    />
+                                                </div>
 
-                                            <div className="flex justify-end gap-3 pt-2">
-                                                <Button
-                                                    variant="ghost"
-                                                    onClick={() => setShowGenerateModal(false)}
-                                                    className="text-gray-400 hover:text-white"
-                                                >
-                                                    Cancel
-                                                </Button>
-                                                <Button
-                                                    className="bg-primary hover:bg-primary/90 text-white"
-                                                    onClick={handleGenerateKey}
-                                                    disabled={isGenerating}
-                                                >
-                                                    {isGenerating ? 'Generating...' : 'Generate Key'}
-                                                </Button>
+                                                <div className="flex justify-end gap-3 pt-2">
+                                                    <Button
+                                                        variant="ghost"
+                                                        onClick={handleCloseModal}
+                                                        className="text-gray-400 hover:text-white"
+                                                    >
+                                                        Cancel
+                                                    </Button>
+                                                    <Button
+                                                        className="bg-primary hover:bg-primary/90 text-white"
+                                                        onClick={handleGenerateKey}
+                                                        disabled={isGenerating}
+                                                    >
+                                                        {isGenerating ? 'Generating...' : 'Generate Key'}
+                                                    </Button>
+                                                </div>
                                             </div>
+                                        )}
+                                    </motion.div>
+                                </div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Revoke Confirmation Modal */}
+                        <AnimatePresence>
+                            {keyToRevoke && (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        onClick={() => setKeyToRevoke(null)}
+                                        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                                    />
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        className="relative w-full max-w-md bg-[#18181b] border border-[#27272a] rounded-xl p-6 shadow-2xl z-10"
+                                    >
+                                        <div className="flex items-center gap-4 mb-4">
+                                            <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">
+                                                <Shield className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-bold text-white">Revoke API Key?</h3>
+                                                <p className="text-sm text-gray-400">This action cannot be undone.</p>
+                                            </div>
+                                        </div>
+
+                                        <p className="text-gray-300 mb-6">
+                                            Are you sure you want to revoke <span className="font-semibold text-white">"{keyToRevoke.alias}"</span>?
+                                            Any applications using this key will immediately lose access.
+                                        </p>
+
+                                        <div className="flex justify-end gap-3">
+                                            <Button variant="ghost" onClick={() => setKeyToRevoke(null)} className="text-gray-400 hover:text-white">
+                                                Cancel
+                                            </Button>
+                                            <Button
+                                                className="bg-red-600 hover:bg-red-700 text-white"
+                                                onClick={handleRevokeKey}
+                                            >
+                                                Revoke Key
+                                            </Button>
                                         </div>
                                     </motion.div>
                                 </div>

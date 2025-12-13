@@ -56,12 +56,12 @@ export default function LoginPage() {
     }
 
     useEffect(() => {
-        if (state.data != undefined) {
+        if (state.success) {
             localStorage.setItem('token', state.data.token)
             localStorage.setItem('userId', state.data.id)
             router.push('/')
         }
-    }, [state.data, router])
+    }, [state.success, router])
 
     return (
         <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-background">
