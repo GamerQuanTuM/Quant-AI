@@ -1,12 +1,14 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { LayoutTemplate, BarChart, ArrowRight, Zap } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { LayoutTemplate, BarChart, ArrowRight, Zap, FileText, Calendar, Clock } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
 import axiosInstance from '@/lib/axios-instance'
-import { useEffect, useState } from 'react'
+import { Project } from '../../../generated/prisma'
 
 type Analytics = {
     totalWords: string
@@ -26,7 +28,10 @@ export default function DashboardPage() {
         projectGrowth: '0',
         wordGrowth: '0'
     })
+    const [recentProjects, setRecentProjects] = useState<Project[]>([])
     const { user } = useAuth()
+    const router = useRouter()
+
     const container = {
         hidden: { opacity: 0 },
         show: {
@@ -54,8 +59,23 @@ export default function DashboardPage() {
         }
     }
 
+    const fetchRecentProjects = async () => {
+        try {
+            const response = await axiosInstance.get('/api/recent-projects')
+            console.log("Recent projects response:", response);
+            const data = response.data
+            console.log("Recent projects data:", data);
+            setRecentProjects(data)
+        } catch (error) {
+            console.error('Failed to fetch recent projects:', error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
     useEffect(() => {
         fetchAnalytics()
+        fetchRecentProjects()
     }, [])
 
     return (
@@ -124,37 +144,56 @@ export default function DashboardPage() {
                         View All <ArrowRight className="w-3 h-3" />
                     </Link>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {[
-                        { title: "LinkedIn Post Strategy", type: "Social Media", time: "2 hours ago", icon: "💼" },
-                        { title: "Product Launch Email", type: "Email Marketing", time: "5 hours ago", icon: "📧" },
-                        { title: "Blog Outline: AI Trends", type: "Blog Post", time: "Yesterday", icon: "📝" },
-                    ].map((project, idx) => (
-                        <motion.div
-                            key={idx}
-                            variants={item}
-                            className="p-6 rounded-xl bg-card border border-border hover:border-primary/50 cursor-pointer transition-all group shadow-sm"
-                        >
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center border border-border text-2xl group-hover:scale-110 transition-transform duration-300">
-                                    {project.icon}
+                {recentProjects.length === 0 ? (
+                    <div className="text-muted-foreground text-sm text-center py-4">
+                        No recent projects found.
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {recentProjects.map((project, idx) => (
+                            <motion.div
+                                onClick={() => router.push(`/project/${project.slug}`)}
+                                key={project.id || idx}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                                className="group relative p-5 rounded-2xl bg-card border border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
+
+                                <div className="relative z-10 flex flex-col h-full">
+                                    <div className="flex items-start justify-between mb-4">
+                                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 shadow-sm">
+                                            <FileText className="w-5 h-5" />
+                                        </div>
+                                        <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
+                                            <ArrowRight className="w-5 h-5 text-primary" />
+                                        </div>
+                                    </div>
+
+                                    <h4 className="font-semibold text-lg text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-1">
+                                        {project.name}
+                                    </h4>
+
+                                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2 flex-grow">
+                                        {project.description || 'No description provided for this creative project.'}
+                                    </p>
+
+                                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-auto pt-2 border-t border-border/50">
+                                        <div className="flex items-center gap-1.5">
+                                            <Calendar className="w-3.5 h-3.5" />
+                                            <span>{new Date(project.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <Clock className="w-3.5 h-3.5" />
+                                            <span>{new Date(project.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                                    <ArrowRight className="w-4 h-4 -rotate-45 group-hover:rotate-0 transition-transform" />
-                                </Button>
-                            </div>
-                            <h4 className="font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">{project.title}</h4>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-4">
-                                <span>{project.type}</span>
-                                <span>•</span>
-                                <span>{project.time}</span>
-                            </div>
-                            <div className="w-full bg-muted h-1 rounded-full overflow-hidden">
-                                <div className="bg-primary h-full w-full" />
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                )}
             </div>
         </motion.div>
     )
