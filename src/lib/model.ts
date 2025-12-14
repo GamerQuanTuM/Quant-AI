@@ -11,13 +11,13 @@ import { ChatOpenAI } from "@langchain/openai";
 
 const model = new ChatOpenAI({
     model: "meta-llama/llama-3.2-3b-instruct:free",
-    streaming:true,
-    maxRetries:2,
-    temperature:0.5,
+    streaming: true,
+    maxRetries: 2,
+    temperature: 0.5,
     configuration: {
-        apiKey: process.env.OPENROUTER_API_KEY,
+        apiKey: process.env.OPENROUTER_API_KEY!,
         baseURL: "https://openrouter.ai/api/v1",
-        
+
     }
 
 })

@@ -3,10 +3,17 @@ import Razorpay from "razorpay";
 import { prisma } from "@/lib/prisma";
 import { protect } from "@/middleware/protect";
 
-const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID!,
-    key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
+let razorpayInstance: Razorpay | null = null;
+
+const getRazorpay = () => {
+    if (!razorpayInstance) {
+        razorpayInstance = new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID!,
+            key_secret: process.env.RAZORPAY_KEY_SECRET!,
+        });
+    }
+    return razorpayInstance;
+};
 
 const createOrder = async (req: Request, userId: string) => {
     try {
@@ -17,7 +24,6 @@ const createOrder = async (req: Request, userId: string) => {
             return NextResponse.json({ error: "Invalid credits amount" }, { status: 400 });
         }
 
-        // Defined pricing tiers matching frontend
         const pricingTiers: Record<number, number> = {
             500: 499,
             2500: 1999,
@@ -33,7 +39,7 @@ const createOrder = async (req: Request, userId: string) => {
             receipt: `receipt_${Date.now()}_${userId.slice(-5)}`,
         };
 
-        const order = await razorpay.orders.create(options);
+        const order = await getRazorpay().orders.create(options);
 
         await prisma.transaction.create({
             data: {

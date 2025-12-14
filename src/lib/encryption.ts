@@ -1,21 +1,25 @@
 import crypto from 'crypto';
 
-const SECRET = process.env.ENCRYPTION_KEY!;
-
-if (!SECRET) {
-  throw new Error("ENCRYPTION_KEY is missing. Fix your environment.");
+const getSecret = () => {
+  const secret = process.env.ENCRYPTION_KEY;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error("ENCRYPTION_KEY is missing. Fix your environment.");
+    }
+    return "12345678901234567890123456789012";
+  }
+  return secret;
 }
 
 
 const ALGO = 'aes-256-gcm';
 
-// Encrypts a string and returns a single storable string
 export function encrypt(text: string): string {
   const iv = crypto.randomBytes(12);
 
   const cipher = crypto.createCipheriv(
     ALGO,
-    Buffer.from(SECRET),
+    Buffer.from(getSecret()),
     iv
   );
 
@@ -27,7 +31,6 @@ export function encrypt(text: string): string {
   return `${iv.toString('hex')}:${authTag}:${encrypted}`;
 }
 
-// Decrypts the value produced by encrypt()
 export function decrypt(stored: string): string {
   const [ivHex, authTagHex, encryptedHex] = stored.split(':');
 
@@ -37,7 +40,7 @@ export function decrypt(stored: string): string {
 
   const decipher = crypto.createDecipheriv(
     ALGO,
-    Buffer.from(SECRET),
+    Buffer.from(getSecret()),
     Buffer.from(ivHex, 'hex')
   );
 
