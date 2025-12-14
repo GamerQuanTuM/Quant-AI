@@ -6,20 +6,22 @@ import { Wand2, Copy, Save, ArrowLeft, Loader2 } from 'lucide-react'
 import { useCompletion } from '@ai-sdk/react';
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { getClientUser } from '@/lib/user-client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { TEMPLATE_CONFIG } from '@/constants/template-config'
+import axiosInstance from '@/lib/axios-instance';
 
 
 function GeneratorContent() {
     const searchParams = useSearchParams()
+    const router = useRouter()
     const templateId = searchParams.get('template') || 'default'
     const config = TEMPLATE_CONFIG[templateId] || TEMPLATE_CONFIG['default']
 
     const [viewMode, setViewMode] = useState<'preview' | 'markdown'>('preview')
-    const [projects, setProjects] = useState<{ slug: string; name: string }[]>([])
+    const [projects, setProjects] = useState<{ slug: string; name: string, id: string }[]>([])
     const [selectedProjectSlug, setSelectedProjectSlug] = useState<string>("")
     const [formData, setFormData] = useState<Record<string, string>>({})
 
@@ -27,8 +29,7 @@ function GeneratorContent() {
     const [availableProviders, setAvailableProviders] = useState<string[]>([])
 
     useEffect(() => {
-        // Check which keys exist in localStorage
-        const providers = ['server'] // Default option
+        const providers = ['server']
         if (localStorage.getItem('openrouter_key')) providers.push('openrouter')
         if (localStorage.getItem('openai_key')) providers.push('openai')
         if (localStorage.getItem('google_key')) providers.push('google')
@@ -134,7 +135,6 @@ function GeneratorContent() {
         try {
             const token = localStorage.getItem('token')
 
-            // Get the appropriate key for the selected provider
             let providerKey = ''
             if (selectedProvider === 'openrouter') providerKey = localStorage.getItem('openrouter_key') || ''
             if (selectedProvider === 'openai') providerKey = localStorage.getItem('openai_key') || ''
@@ -146,7 +146,6 @@ function GeneratorContent() {
                 ...(token ? { Authorization: `Bearer ${token}` } : {})
             }
 
-            // Only attach provider headers if not using server default
             if (selectedProvider !== 'server') {
                 headers['x-provider'] = selectedProvider
                 headers['x-provider-key'] = providerKey
@@ -176,6 +175,7 @@ function GeneratorContent() {
                     data?.projects?.map(project => ({
                         slug: project.slug,
                         name: project.name,
+                        id: project.id,
                     })) || []
                 )
             })
@@ -200,12 +200,20 @@ function GeneratorContent() {
 
     const handleSave = async () => {
         if (!completion || !selectedProjectSlug) return
-
-        console.log('Saving content:', {
-            projectSlug: selectedProjectSlug,
-            template: templateId,
-            content: completion
-        })
+        try {
+            const payload = {
+                projectId: projects.find(project => project.slug === selectedProjectSlug)?.id,
+                templateId,
+                content: completion,
+                inputData: formData
+            }
+            const response = await axiosInstance.post('/api/content/save', payload)
+            if (response.status === 200) {
+                router.push("/project/" + selectedProjectSlug)
+            }
+        } catch (error) {
+            console.log(error)
+        }
     }
 
     const markdownComponents = {

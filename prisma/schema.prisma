@@ -19,12 +19,8 @@ model User {
   passwordHash  String
   emailVerified DateTime?
   image         String?
-
-  // Usage & Billing
   credits Int      @default(100)
   plan    PlanType @default(FREE)
-
-  // Relations
   projects     Project[]
   transactions Transaction[]
   tokens       Token[]
@@ -49,13 +45,9 @@ model Project {
   name        String
   description String?
   slug        String  @unique
-
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Relations
   contents GeneratedContent[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -64,17 +56,11 @@ model Project {
 
 model GeneratedContent {
   id String @id @default(cuid())
-
-  // Template Info
-  templateId String // e.g., 'linkedin-post', 'blog-article'
-
-  // Data
-  inputData  Json // Stores the form inputs { topic: "...", tone: "..." }
-  outputText String @db.Text // The actual AI generated text
-
+  templateId String
+  inputData  Json
+  outputText String @db.Text
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
   createdAt DateTime @default(now())
 }
 
@@ -82,10 +68,8 @@ model Transaction {
   id     String @id @default(cuid())
   userId String
   user   User   @relation(fields: [userId], references: [id])
-
-  amount Int // Credits added or removed
-  type   TransactionType // CREDIT_PURCHASE or USAGE
-
+  amount Int
+  type   TransactionType
   createdAt DateTime @default(now())
 }
 
