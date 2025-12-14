@@ -24,7 +24,6 @@ model User {
   projects     Project[]
   transactions Transaction[]
   tokens       Token[]
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

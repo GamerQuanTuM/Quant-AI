@@ -10,7 +10,6 @@ import ReactMarkdown from 'react-markdown'
 import axiosInstance from '@/lib/axios-instance'
 import { TEMPLATE_CONFIG } from '@/constants/template-config'
 
-// Function to safely format dates
 const formatDate = (date: Date | string) => {
     try {
         return new Date(date).toLocaleDateString(undefined, {
@@ -25,7 +24,6 @@ const formatDate = (date: Date | string) => {
     }
 }
 
-// Helper to get template info
 const getTemplateInfo = (id: string) => {
     return TEMPLATE_CONFIG[id] || { title: 'Unknown Template', inputs: [] }
 }
@@ -53,7 +51,7 @@ export default function ProjectDetailsPage() {
     const [projectWithContents, setProjectWithContents] = useState<ProjectWithContents | null>(null)
     const [itemToDelete, setItemToDelete] = useState<GeneratedContent | null>(null)
 
-    // Markdown components needed for rendering
+
     const markdownComponents = {
         h1: ({ node, ...props }: any) => <h1 className="text-2xl font-bold text-foreground mt-6 mb-4" {...props} />,
         h2: ({ node, ...props }: any) => <h2 className="text-xl font-semibold text-foreground mt-5 mb-3" {...props} />,
@@ -86,8 +84,6 @@ export default function ProjectDetailsPage() {
             console.log(error)
         }
     }
-
-    console.log(projectWithContents)
 
     const handleCopy = () => {
         if (!selectedContent) return

@@ -5,8 +5,27 @@ import { LayoutTemplate, BarChart, ArrowRight, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useAuth } from '@/hooks/use-auth'
+import axiosInstance from '@/lib/axios-instance'
+import { useEffect, useState } from 'react'
+
+type Analytics = {
+    totalWords: string
+    totalProjects: string
+    totalCredits: string
+    projectGrowth: string
+    wordGrowth: string
+}
 
 export default function DashboardPage() {
+
+    const [isLoading, setIsLoading] = useState(true)
+    const [analytics, setAnalytics] = useState<Analytics>({
+        totalWords: '0',
+        totalProjects: '0',
+        totalCredits: '0',
+        projectGrowth: '0',
+        wordGrowth: '0'
+    })
     const { user } = useAuth()
     const container = {
         hidden: { opacity: 0 },
@@ -22,6 +41,22 @@ export default function DashboardPage() {
         hidden: { opacity: 0, y: 20 },
         show: { opacity: 1, y: 0 }
     }
+
+    const fetchAnalytics = async () => {
+        try {
+            const response = await axiosInstance.get('/api/analytics')
+            const data = await response.data
+            setAnalytics(data)
+        } catch (error) {
+            console.error('Failed to fetch analytics:', error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchAnalytics()
+    }, [])
 
     return (
         <motion.div
@@ -47,9 +82,9 @@ export default function DashboardPage() {
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
-                    { label: 'Total Projects', value: '12', icon: LayoutTemplate, change: '+2 this week', color: 'text-blue-500' },
-                    { label: 'Words Generated', value: '15.4k', icon: BarChart, change: '+2.1k today', color: 'text-purple-500' },
-                    { label: 'Credits Left', value: '150', icon: Zap, change: 'Recharges monthly', color: 'text-amber-500' }
+                    { label: 'Total Projects', value: analytics.totalProjects, icon: LayoutTemplate, change: `${analytics.projectGrowth} this week`, color: 'text-blue-500' },
+                    { label: 'Words Generated', value: analytics.totalWords, icon: BarChart, change: `${analytics.wordGrowth} today`, color: 'text-purple-500' },
+                    { label: 'Credits Left', value: analytics.totalCredits, icon: Zap, change: 'Recharges monthly', color: 'text-amber-500' }
                 ].map((stat, i) => (
                     <motion.div
                         key={i}
@@ -63,9 +98,19 @@ export default function DashboardPage() {
                             <div className="p-2 rounded-lg bg-muted border border-border text-muted-foreground group-hover:text-foreground transition-colors">
                                 <stat.icon className="w-5 h-5" />
                             </div>
-                            <span className="text-xs font-medium text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">{stat.change}</span>
+                            {isLoading ? (
+                                <div className="h-5 w-16 bg-muted/50 animate-pulse rounded-full" />
+                            ) : (
+                                <span className="text-xs font-medium text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">{stat.change}</span>
+                            )}
                         </div>
-                        <div className="text-3xl font-bold text-foreground mb-1 relative z-10">{stat.value}</div>
+                        <div className="text-3xl font-bold text-foreground mb-1 relative z-10">
+                            {isLoading ? (
+                                <div className="h-9 w-24 bg-muted/50 animate-pulse rounded-md" />
+                            ) : (
+                                stat.value
+                            )}
+                        </div>
                         <div className="text-sm text-muted-foreground relative z-10">{stat.label}</div>
                     </motion.div>
                 ))}
