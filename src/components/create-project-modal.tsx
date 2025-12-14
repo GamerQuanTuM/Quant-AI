@@ -38,37 +38,37 @@ export function CreateProjectModal() {
                         initial={{ opacity: 0, scale: 0.95, y: -20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -20 }}
-                        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 bg-[#09090b] border border-[#27272a] rounded-2xl shadow-2xl z-50"
+                        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-6 bg-background border border-border rounded-2xl shadow-2xl z-50"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-primary/10 rounded-lg text-primary">
                                     <FolderPlus className="w-5 h-5" />
                                 </div>
-                                <h2 className="text-xl font-semibold text-white">Create Project</h2>
+                                <h2 className="text-xl font-semibold text-foreground">Create Project</h2>
                             </div>
-                            <Button variant="ghost" size="icon" onClick={closeCreateProject} className="text-gray-400 hover:text-white">
+                            <Button variant="ghost" size="icon" onClick={closeCreateProject} className="text-muted-foreground hover:text-foreground">
                                 <X className="w-5 h-5" />
                             </Button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-300">Project Name</label>
+                                <label className="text-sm font-medium text-muted-foreground">Project Name</label>
                                 <Input
                                     placeholder="e.g., Q1 Marketing Campaign"
                                     value={projectName}
                                     onChange={(e) => setProjectName(e.target.value)}
-                                    className="bg-zinc-900 border-zinc-800 text-white"
+                                    className="bg-muted border-input text-foreground"
                                     autoFocus
                                 />
                             </div>
 
                             <div className="flex justify-end gap-3 pt-2">
-                                <Button type="button" variant="ghost" onClick={closeCreateProject} className="text-gray-400 hover:text-white">
+                                <Button type="button" variant="ghost" onClick={closeCreateProject} className="text-muted-foreground hover:text-foreground">
                                     Cancel
                                 </Button>
-                                <Button type="submit" className="bg-primary hover:bg-primary/90">
+                                <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                                     Create Project
                                 </Button>
                             </div>

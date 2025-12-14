@@ -32,26 +32,26 @@ export default function BillingPage() {
     return (
         <div className="space-y-10 max-w-5xl mx-auto">
             <div className="text-center space-y-4">
-                <h2 className="text-4xl font-bold tracking-tight text-white">Upgrade your creativity</h2>
-                <p className="text-gray-400 max-w-2xl mx-auto text-lg">
+                <h2 className="text-4xl font-bold tracking-tight text-foreground">Upgrade your creativity</h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
                     Pay as you go. No hidden fees. Purchase credits to keep generating amazing content.
                 </p>
             </div>
 
             {/* Credit Status Card */}
-            <div className="bg-gradient-to-r from-indigo-900/40 to-purple-900/40 border border-indigo-500/20 rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+            <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
                 <div className="absolute inset-0 bg-indigo-500/5 blur-3xl pointer-events-none" />
                 <div className="flex items-center gap-6 relative z-10">
                     <div className="w-16 h-16 rounded-2xl bg-indigo-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
                         <Zap className="w-8 h-8 text-white fill-white" />
                     </div>
                     <div>
-                        <div className="text-sm font-medium text-indigo-300 mb-1">Current Balance</div>
-                        <div className="text-4xl font-bold text-white">150 <span className="text-lg font-normal text-gray-400">credits</span></div>
-                        <p className="text-gray-400 text-sm mt-1">~15 generations remaining</p>
+                        <div className="text-sm font-medium text-indigo-500 mb-1">Current Balance</div>
+                        <div className="text-4xl font-bold text-foreground">150 <span className="text-lg font-normal text-muted-foreground">credits</span></div>
+                        <p className="text-muted-foreground text-sm mt-1">~15 generations remaining</p>
                     </div>
                 </div>
-                <Button className="bg-white text-indigo-950 hover:bg-gray-100 font-semibold px-8 h-12 relative z-10">
+                <Button className="bg-background text-foreground hover:bg-accent font-semibold px-8 h-12 relative z-10 border border-input shadow-sm">
                     Auto-recharge Settings
                 </Button>
             </div>
@@ -64,34 +64,34 @@ export default function BillingPage() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
-                        className={`relative p-8 rounded-2xl border flex flex-col ${plan.popular ? 'bg-[#18181b] border-indigo-500/50 shadow-2xl shadow-indigo-500/10' : 'bg-[#09090b] border-[#27272a]'}`}
+                        className={`relative p-8 rounded-2xl border flex flex-col ${plan.popular ? 'bg-card border-primary shadow-lg shadow-primary/5' : 'bg-card border-border'}`}
                     >
                         {plan.popular && (
-                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-indigo-500 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
+                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">
                                 Most Popular
                             </div>
                         )}
 
                         <div className="mb-6">
-                            <h3 className="text-lg font-medium text-gray-300">{plan.name}</h3>
+                            <h3 className="text-lg font-medium text-foreground">{plan.name}</h3>
                             <div className="flex items-baseline gap-1 mt-2">
-                                <span className="text-4xl font-bold text-white">{plan.price}</span>
-                                <span className="text-gray-500">/ pack</span>
+                                <span className="text-4xl font-bold text-foreground">{plan.price}</span>
+                                <span className="text-muted-foreground">/ pack</span>
                             </div>
-                            <div className="text-indigo-400 font-medium mt-2 text-sm">{plan.credits} Credits</div>
+                            <div className="text-primary font-medium mt-2 text-sm">{plan.credits} Credits</div>
                         </div>
 
                         <ul className="space-y-4 mb-8 flex-1">
                             {plan.features.map((feature) => (
-                                <li key={feature} className="flex items-start gap-3 text-sm text-gray-400">
-                                    <Check className="w-4 h-4 text-indigo-500 mt-0.5" />
+                                <li key={feature} className="flex items-start gap-3 text-sm text-muted-foreground">
+                                    <Check className="w-4 h-4 text-primary mt-0.5" />
                                     <span>{feature}</span>
                                 </li>
                             ))}
                         </ul>
 
                         <Button
-                            className={`w-full h-11 ${plan.popular ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-zinc-800 hover:bg-zinc-700 text-white'}`}
+                            className={`w-full h-11 ${plan.popular ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'}`}
                         >
                             Purchase Now
                         </Button>
@@ -99,7 +99,7 @@ export default function BillingPage() {
                 ))}
             </div>
 
-            <div className="flex items-center justify-center gap-6 text-sm text-gray-500 pt-8 border-t border-[#27272a]">
+            <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground pt-8 border-t border-border">
                 <div className="flex items-center gap-2">
                     <Shield className="w-4 h-4" />
                     Secure Payment

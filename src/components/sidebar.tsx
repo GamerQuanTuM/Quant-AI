@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { useSidebar } from '@/lib/sidebar-context'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from './ui/button'
+import { useAuth } from '@/hooks/use-auth'
 
 const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -19,12 +20,14 @@ export function SidebarContent() {
     const pathname = usePathname()
     const { closeMobileSidebar } = useSidebar()
 
+    const { user } = useAuth()
+
     return (
-        <div className="flex h-full flex-col bg-[#09090b] text-white">
+        <div className="flex h-full flex-col bg-card text-card-foreground">
             {/* Logo */}
-            <div className="flex h-16 items-center px-6 border-b border-[#27272a] justify-between">
-                <div className="flex items-center gap-2 text-primary font-bold text-xl">
-                    <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white">
+            <div className="flex h-16 items-center px-6 border-b border-border justify-between">
+                <div className="flex items-center gap-2 text-foreground font-bold text-xl">
+                    <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground">
                         <Sparkles className="w-5 h-5 fill-current" />
                     </div>
                     <span>QuantAI</span>
@@ -34,7 +37,7 @@ export function SidebarContent() {
 
             {/* Nav */}
             <div className="flex-1 flex flex-col gap-1 p-4 overflow-y-auto">
-                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 px-2">Menu</div>
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">Menu</div>
                 {navigation.map((item) => {
                     const isActive = pathname === item.href
                     return (
@@ -45,11 +48,11 @@ export function SidebarContent() {
                             className={cn(
                                 "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group text-sm font-medium",
                                 isActive
-                                    ? "bg-primary text-primary-foreground shadow-[0_0_20px_rgba(99,102,241,0.3)]"
-                                    : "text-gray-400 hover:bg-white/5 hover:text-white"
+                                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
+                                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                             )}
                         >
-                            <item.icon className={cn("w-5 h-5", isActive ? "text-white" : "text-gray-400 group-hover:text-white")} />
+                            <item.icon className={cn("w-5 h-5", isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-accent-foreground")} />
                             {item.name}
                         </Link>
                     )
@@ -57,31 +60,33 @@ export function SidebarContent() {
             </div>
 
             {/* Bottom Section */}
-            <div className="p-4 border-t border-[#27272a] space-y-4">
+            <div className="p-4 border-t border-border space-y-4">
                 {/* Credits */}
-                <div className="bg-gradient-to-br from-indigo-900/50 to-purple-900/50 rounded-xl p-4 border border-white/5 relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="bg-gradient-to-r from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-xl p-4 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-indigo-500/5 blur-xl pointer-events-none" />
                     <div className="flex items-center justify-between mb-2 relative z-10">
-                        <span className="text-xs font-medium text-indigo-300">Credits Remaining</span>
-                        <Zap className="w-4 h-4 text-amber-400 fill-amber-400" />
+                        <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">Credits Remaining</span>
+                        <div className="w-6 h-6 rounded-md bg-indigo-500 flex items-center justify-center shadow-sm shadow-indigo-500/20">
+                            <Zap className="w-3.5 h-3.5 text-white fill-white" />
+                        </div>
                     </div>
-                    <div className="text-2xl font-bold text-white relative z-10">150</div>
-                    <Link href="/billing" className="text-[10px] text-gray-400 hover:text-white mt-2 block relative z-10">
+                    <div className="text-2xl font-bold text-foreground relative z-10">150</div>
+                    <Link href="/billing" className="text-[10px] text-muted-foreground hover:text-foreground mt-2 block relative z-10">
                         Upgrade Plan →
                     </Link>
                 </div>
 
                 {/* User Profile */}
                 <Link href="/settings">
-                    <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors">
-                        <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center border border-white/10 text-xs font-bold text-white">
+                    <div className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-accent hover:text-accent-foreground cursor-pointer transition-colors">
+                        <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center border border-border text-xs font-bold text-foreground">
                             JD
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-white truncate">John Doe</p>
-                            <p className="text-xs text-gray-500 truncate">john@contentgen.com</p>
+                            <p className="text-sm font-medium text-foreground truncate">{user?.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
                         </div>
-                        <Settings className="w-4 h-4 text-gray-500 hover:text-white transition-colors" />
+                        <Settings className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
                     </div>
                 </Link>
             </div>
@@ -91,7 +96,7 @@ export function SidebarContent() {
 
 export function Sidebar() {
     return (
-        <div className="hidden md:flex h-screen w-72 flex-col border-r border-[#27272a] fixed left-0 top-0 bottom-0 z-40">
+        <div className="hidden md:flex h-screen w-72 flex-col border-r border-border fixed left-0 top-0 bottom-0 z-40 bg-card">
             <SidebarContent />
         </div>
     )
@@ -109,20 +114,20 @@ export function MobileSidebar() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={closeMobileSidebar}
-                        className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 md:hidden"
+                        className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 md:hidden"
                     />
                     <motion.div
                         initial={{ x: "-100%" }}
                         animate={{ x: 0 }}
                         exit={{ x: "-100%" }}
                         transition={{ type: "spring", bounce: 0, duration: 0.3 }}
-                        className="fixed inset-y-0 left-0 z-50 w-72 bg-[#09090b] border-r border-[#27272a] md:hidden"
+                        className="fixed inset-y-0 left-0 z-50 w-72 bg-card border-r border-border md:hidden"
                     >
                         <SidebarContent />
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute top-4 right-4 text-gray-400 md:hidden"
+                            className="absolute top-4 right-4 text-muted-foreground md:hidden"
                             onClick={closeMobileSidebar}
                         >
                             <X className="w-5 h-5" />

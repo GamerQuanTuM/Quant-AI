@@ -78,7 +78,7 @@ export default function CreateProjectPage() {
             animate={{ opacity: 1, y: 0 }}
             className="max-w-2xl mx-auto py-12"
         >
-            <Link href="/projects" className="inline-flex items-center text-sm text-gray-500 hover:text-white mb-6">
+            <Link href="/projects" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
                 <ArrowLeft className="w-4 h-4 mr-2" /> Back to Projects
             </Link>
 
@@ -88,8 +88,8 @@ export default function CreateProjectPage() {
                         <FolderPlus className="w-8 h-8" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold text-white">Create New Project</h1>
-                        <p className="text-gray-400">Start a new collection of content.</p>
+                        <h1 className="text-3xl font-bold text-foreground">Create New Project</h1>
+                        <p className="text-muted-foreground">Start a new collection of content.</p>
                     </div>
                 </div>
 
@@ -99,23 +99,23 @@ export default function CreateProjectPage() {
                         e.preventDefault()
                         handleSubmit()
                     }}
-                    className="mt-8 space-y-6 bg-[#18181b] border border-[#27272a] p-8 rounded-2xl">
+                    className="mt-8 space-y-6 bg-card border border-border p-8 rounded-2xl shadow-sm">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-300">Project Name</label>
+                        <label className="text-sm font-medium text-muted-foreground">Project Name</label>
                         <Input
                             placeholder="e.g., Q1 Marketing Campaign"
-                            className="bg-zinc-900 border-zinc-800 text-white h-12 text-lg mt-1"
+                            className="bg-background border-input text-foreground h-12 text-lg mt-1"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             required
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-300">Slug (Optional)</label>
+                        <label className="text-sm font-medium text-muted-foreground">Slug (Optional)</label>
                         <div className="relative">
                             <Input
                                 placeholder="marketing-campaign"
-                                className={`bg-zinc-900 border-zinc-800 text-white h-12 text-lg mt-1 pr-20 ${slugStatus === 'available' ? 'border-green-500/50 focus-visible:ring-green-500/50' :
+                                className={`bg-background border-input text-foreground h-12 text-lg mt-1 pr-20 ${slugStatus === 'available' ? 'border-green-500/50 focus-visible:ring-green-500/50' :
                                     slugStatus === 'unavailable' ? 'border-red-500/50 focus-visible:ring-red-500/50' : ''
                                     }`}
                                 value={formData.slug}
@@ -129,18 +129,18 @@ export default function CreateProjectPage() {
                                     type="button"
                                     size="sm"
                                     variant="ghost"
-                                    className="h-8 px-3 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
+                                    className="h-8 px-3 text-xs bg-muted hover:bg-accent text-muted-foreground hover:text-foreground"
                                     onClick={checkSlug}
                                     disabled={slugStatus === 'loading' || !formData.slug}
                                 >
                                     {slugStatus === 'loading' ? (
                                         <Loader2 className="w-3 h-3 animate-spin" />
                                     ) : slugStatus === 'available' ? (
-                                        <span className="flex items-center text-green-400">
+                                        <span className="flex items-center text-green-500">
                                             <Check className="w-3 h-3 mr-1" /> Available
                                         </span>
                                     ) : slugStatus === 'unavailable' ? (
-                                        <span className="flex items-center text-red-400">
+                                        <span className="flex items-center text-destructive">
                                             <X className="w-3 h-3 mr-1" /> Taken
                                         </span>
                                     ) : (
@@ -155,29 +155,29 @@ export default function CreateProjectPage() {
                             </p>
                         )}
                         {slugStatus === 'unavailable' && (
-                            <p className="text-xs text-red-500 mt-1 ml-1">
+                            <p className="text-xs text-destructive mt-1 ml-1">
                                 This URL is already taken. Please try another one.
                             </p>
                         )}
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-300">Description (Optional)</label>
+                        <label className="text-sm font-medium text-muted-foreground">Description (Optional)</label>
                         <textarea
-                            className="flex min-h-[120px] w-full rounded-md border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 mt-1"
+                            className="flex min-h-[120px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 mt-1"
                             placeholder="What is this project for?"
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         />
                     </div>
 
-                    <div className="flex justify-end gap-3 pt-4 border-t border-[#27272a]">
+                    <div className="flex justify-end gap-3 pt-4 border-t border-border">
                         <Link href="/projects">
-                            <Button type="submit" variant="ghost" className="text-gray-400 hover:text-white">
+                            <Button type="submit" variant="ghost" className="text-muted-foreground hover:text-foreground">
                                 Cancel
                             </Button>
                         </Link>
-                        <Button type="submit" className="bg-primary hover:bg-primary/90 px-8" disabled={isPending}>
+                        <Button type="submit" className="bg-primary hover:bg-primary/90 px-8 text-primary-foreground" disabled={isPending}>
                             {isPending ? 'Creating Project...' : 'Create Project'}
                         </Button>
                     </div>
