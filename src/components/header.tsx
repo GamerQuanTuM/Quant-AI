@@ -17,17 +17,6 @@ export function Header() {
                 <Button variant="ghost" size="icon" className="md:hidden text-muted-foreground" onClick={toggleMobileSidebar}>
                     <Menu className="w-5 h-5" />
                 </Button>
-
-                {/* Search */}
-                <div className="flex-1 md:w-96 md:flex-none">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Search..."
-                            className="pl-9 bg-muted/50 border-transparent focus:border-input text-foreground placeholder:text-muted-foreground focus:bg-muted transition-all rounded-full h-9 w-full"
-                        />
-                    </div>
-                </div>
             </div>
 
             {/* Right Actions */}

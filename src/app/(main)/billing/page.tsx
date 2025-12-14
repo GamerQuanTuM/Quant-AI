@@ -1,36 +1,101 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Check, Zap, CreditCard, Shield } from 'lucide-react'
+import { Check, Zap, CreditCard, Shield, Loader2 } from 'lucide-react'
+import Script from 'next/script'
 import { Button } from '@/components/ui/button'
+import { useState } from 'react'
+import axiosInstance from '@/lib/axios-instance'
+import { useAuth } from '@/hooks/use-auth'
+
+declare global {
+    interface Window {
+        Razorpay: any;
+    }
+}
 
 const plans = [
     {
         name: 'Starter',
-        price: '$5',
-        credits: '500',
+        price: '₹499',
+        credits: 500,
         features: ['Access to all templates', 'Basic support', 'Save to projects'],
         popular: false
     },
     {
         name: 'Pro',
-        price: '$15',
-        credits: '2000',
+        price: '₹1,999',
+        credits: 2500,
         features: ['Everything in Starter', 'Priority generation', 'Advanced tone controls', 'Priority support'],
         popular: true
     },
     {
         name: 'Agency',
-        price: '$49',
-        credits: '10,000',
+        price: '₹4,999',
+        credits: 7000,
         features: ['Everything in Pro', 'Team collaboration', 'API Access', 'Dedicated account manager'],
         popular: false
     }
 ]
 
 export default function BillingPage() {
+    const { user } = useAuth()
+    const [loadingPlan, setLoadingPlan] = useState<string | null>(null)
+
+    const handlePurchase = async (plan: typeof plans[0]) => {
+        setLoadingPlan(plan.name)
+        try {
+            const { data: orderData } = await axiosInstance.post('/api/billing/create-order', {
+                credits: plan.credits,
+            })
+
+            const options = {
+                key: orderData.keyId,
+                amount: orderData.amount,
+                currency: orderData.currency,
+                name: "Content Generator",
+                description: `Purchase ${plan.name} Pack`,
+                order_id: orderData.orderId,
+                handler: async function (response: any) {
+                    try {
+                        const verifyRes = await axiosInstance.post('/api/billing/verify', {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature
+                        })
+
+                        if (verifyRes.data.success) {
+                            window.location.reload()
+                        }
+                    } catch (err) {
+                        console.error(err)
+                        window.location.reload()
+                    }
+                },
+                prefill: {
+                    name: user?.name,
+                    email: user?.email,
+                },
+                theme: {
+                    color: "#6366f1"
+                }
+            }
+
+            const paymentObject = new window.Razorpay(options)
+            paymentObject.open()
+
+        } catch (error) {
+            console.error('Payment initialization failed:', error)
+            alert('Failed to initiate payment')
+        } finally {
+            setLoadingPlan(null)
+        }
+    }
+
     return (
         <div className="space-y-10 max-w-5xl mx-auto">
+            <Script src="https://checkout.razorpay.com/v1/checkout.js" />
+
             <div className="text-center space-y-4">
                 <h2 className="text-4xl font-bold tracking-tight text-foreground">Upgrade your creativity</h2>
                 <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
@@ -47,8 +112,8 @@ export default function BillingPage() {
                     </div>
                     <div>
                         <div className="text-sm font-medium text-indigo-500 mb-1">Current Balance</div>
-                        <div className="text-4xl font-bold text-foreground">150 <span className="text-lg font-normal text-muted-foreground">credits</span></div>
-                        <p className="text-muted-foreground text-sm mt-1">~15 generations remaining</p>
+                        <div className="text-4xl font-bold text-foreground">{user?.credits || 0} <span className="text-lg font-normal text-muted-foreground">credits</span></div>
+                        <p className="text-muted-foreground text-sm mt-1">~{Math.floor((user?.credits || 0) / 10)} generations remaining</p>
                     </div>
                 </div>
                 <Button className="bg-background text-foreground hover:bg-accent font-semibold px-8 h-12 relative z-10 border border-input shadow-sm">
@@ -78,7 +143,7 @@ export default function BillingPage() {
                                 <span className="text-4xl font-bold text-foreground">{plan.price}</span>
                                 <span className="text-muted-foreground">/ pack</span>
                             </div>
-                            <div className="text-primary font-medium mt-2 text-sm">{plan.credits} Credits</div>
+                            <div className="text-primary font-medium mt-2 text-sm">{plan.credits.toLocaleString()} Credits</div>
                         </div>
 
                         <ul className="space-y-4 mb-8 flex-1">
@@ -91,9 +156,18 @@ export default function BillingPage() {
                         </ul>
 
                         <Button
+                            onClick={() => handlePurchase(plan)}
+                            disabled={loadingPlan !== null}
                             className={`w-full h-11 ${plan.popular ? 'bg-primary hover:bg-primary/90 text-primary-foreground' : 'bg-secondary hover:bg-secondary/80 text-secondary-foreground'}`}
                         >
-                            Purchase Now
+                            {loadingPlan === plan.name ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    Processing...
+                                </>
+                            ) : (
+                                'Purchase Now'
+                            )}
                         </Button>
                     </motion.div>
                 ))}
@@ -102,11 +176,11 @@ export default function BillingPage() {
             <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground pt-8 border-t border-border">
                 <div className="flex items-center gap-2">
                     <Shield className="w-4 h-4" />
-                    Secure Payment
+                    Secure Payment via Razorpay
                 </div>
                 <div className="flex items-center gap-2">
                     <CreditCard className="w-4 h-4" />
-                    Stripe Integration
+                    Instant Credit
                 </div>
             </div>
         </div>

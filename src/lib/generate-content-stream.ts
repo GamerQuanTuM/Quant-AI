@@ -5,9 +5,11 @@ import { NextResponse } from "next/server";
 import model from "./model";
 import validate, { ValidationResponseError } from "./zod-validate";
 import z from "zod";
+import { prisma } from "./prisma";
 
 type GenerateStreamOptions<TInput, TPayload> = {
     req: Request;
+    userId:string;
     schema: z.ZodSchema<TInput>;
     template: any;
     buildPayload: (data: TInput) => TPayload;
@@ -15,6 +17,7 @@ type GenerateStreamOptions<TInput, TPayload> = {
 
 export const generateContentStream = async <TInput, TPayload>({
     req,
+    userId,
     schema,
     template,
     buildPayload,
@@ -81,6 +84,19 @@ export const generateContentStream = async <TInput, TPayload>({
             }
         }
 
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { credits: true },
+        });
+
+        if(user && user.credits < 10){
+            return NextResponse.json(
+                { error: "Not enough credits" },
+                { status: 400 }
+            );  
+        }
+        
+
         const data = body?.prompt
             ? JSON.parse(body.prompt)
             : body;
@@ -93,6 +109,15 @@ export const generateContentStream = async <TInput, TPayload>({
         const payload = buildPayload(validatedData);
 
         const stream = await chain.stream(payload);
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { 
+                credits:{
+                    decrement: 10
+                }
+             },
+        });
 
         return createUIMessageStreamResponse({
             stream: toUIMessageStream(stream),

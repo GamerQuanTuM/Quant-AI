@@ -14,6 +14,7 @@ const podcastIntroSchema = z.object({
 const generatePodcastIntro = async (req: Request, userId: string) => {
     return generateContentStream({
         req,
+        userId,
         schema: podcastIntroSchema,
         template: podcastIntroTemplate,
         buildPayload: ({ podcastName, episodeTopic, guest, tone }) => ({

@@ -12,6 +12,7 @@ const instagramCaptionSchema = z.object({
 const generateInstagramCaption = async (req: Request, userId: string) => {
     return generateContentStream({
         req,
+        userId,
         schema: instagramCaptionSchema,
         template: instagramCaptionTemplate,
         buildPayload: ({ description, tone }) => ({

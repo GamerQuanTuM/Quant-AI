@@ -13,6 +13,7 @@ const codeGenerationSchema = z.object({
 const generateCode = async (req: Request, userId: string) => {
     return generateContentStream({
         req,
+        userId,
         schema: codeGenerationSchema,
         template: codeGenerationTemplate,
         buildPayload: ({ description, language, context }) => ({

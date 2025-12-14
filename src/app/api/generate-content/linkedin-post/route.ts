@@ -16,6 +16,7 @@ const linkedinPostSchema = z.object({
 const generateLinkedinPost = async (req: Request, userId: string) => {
     return generateContentStream({
         req,
+        userId,
         schema: linkedinPostSchema,
         template: linkedinPostTemplate,
         buildPayload: ({ topic, audience, takeaways, tone }) => ({

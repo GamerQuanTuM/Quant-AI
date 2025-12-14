@@ -6,9 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Search, Folder, MoreVertical, Calendar, FileText, Trash2, ExternalLink, AlertTriangle, X } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import axiosInstance from '@/lib/axios-instance'
 import { GeneratedContent, Project } from '../../../../generated/prisma'
-
-
 
 export default function ProjectsPageData({
     projects,
@@ -17,12 +16,20 @@ export default function ProjectsPageData({
         contents: GeneratedContent[]
     })[]
 }) {
-    // const [projects, setProjects] = useState(INITIAL_PROJECTS)
-    const [projectToDelete, setProjectToDelete] = useState<number | null>(null)
+    const [projectToDelete, setProjectToDelete] = useState<string | null>(null)
+    const [searchQuery, setSearchQuery] = useState('')
 
-    const handleDelete = (id: number) => {
-        // setProjects(prev => prev.filter(p => p.id !== id))
-        // setProjectToDelete(null)
+    const filteredProjects = projects.filter(project =>
+        project.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+
+    const handleDelete = async (slug: string) => {
+        const res = await axiosInstance.delete(`/api/project/delete?projectSlug=${slug}`)
+
+        if (res.status === 200) {
+            setProjectToDelete(null)
+            window.location.reload()
+        }
     }
 
     return (
@@ -47,6 +54,8 @@ export default function ProjectsPageData({
                     <Input
                         placeholder="Search your projects..."
                         className="pl-9 bg-background border-input text-foreground focus:bg-accent transition-all"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
             </div>
@@ -54,7 +63,7 @@ export default function ProjectsPageData({
             {/* Project List */}
             <div className="grid grid-cols-1 gap-4">
                 <AnimatePresence mode='popLayout'>
-                    {projects.map((project, i) =>
+                    {filteredProjects.map((project, i) =>
                     (
                         <motion.div
                             key={project.id}
@@ -89,7 +98,7 @@ export default function ProjectsPageData({
                                         variant="ghost"
                                         size="icon"
                                         className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                    // onClick={() => setProjectToDelete(project.id)}
+                                        onClick={() => setProjectToDelete(project.slug)}
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </Button>
@@ -131,10 +140,10 @@ export default function ProjectsPageData({
                                 </div>
                             </div>
 
-                            {/* <p className="text-muted-foreground mb-6">
-                                Are you sure you want to delete <span className="font-semibold text-foreground">"{projects.find(p => p.id === projectToDelete)?.title}"</span>?
-                                All {projects.find(p => p.id === projectToDelete)?.contentCount} generated files inside loop be permanently removed.
-                            </p> */}
+                            <p className="text-muted-foreground mb-6">
+                                Are you sure you want to delete <span className="font-semibold text-foreground">"{projects.find(p => p.slug === projectToDelete)?.name}"</span>?
+                                All {projects.find(p => p.slug === projectToDelete)?.contents.length} generated files inside loop be permanently removed.
+                            </p>
 
                             <div className="flex justify-end gap-3">
                                 <Button variant="ghost" onClick={() => setProjectToDelete(null)} className="text-muted-foreground hover:text-foreground">

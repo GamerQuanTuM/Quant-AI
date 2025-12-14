@@ -13,6 +13,7 @@ const videoScriptSchema = z.object({
 const generateVideoScript = async (req: Request, userId: string) => {
     return generateContentStream({
         req,
+        userId,
         schema: videoScriptSchema,
         template: videoScriptTemplate,
         buildPayload: ({ topic, platform, tone }) => ({

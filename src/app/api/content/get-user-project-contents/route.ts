@@ -13,9 +13,9 @@ const getUserProjectContents = async (req: Request, userId: string) => {
     try {
         const url = new URL(req.url)
         const searchParams = url.searchParams
-       const projectSlug = searchParams.get("projectSlug")
+        const projectSlug = searchParams.get("projectSlug")
 
-        const { projectSlug:slug } = validate(
+        const { projectSlug: slug } = validate(
             getUserProjectContentsSchema,
             { projectSlug }
         )
@@ -30,11 +30,11 @@ const getUserProjectContents = async (req: Request, userId: string) => {
                 name: true,
                 slug: true,
                 contents: true,
-                createdAt:true
+                createdAt: true
             }
         })
 
-        return NextResponse.json( contents , { status: 200 })
+        return NextResponse.json(contents, { status: 200 })
 
     } catch (error) {
         if (error instanceof ValidationResponseError) {

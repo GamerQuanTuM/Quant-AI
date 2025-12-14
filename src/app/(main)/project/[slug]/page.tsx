@@ -162,7 +162,6 @@ export default function ProjectDetailsPage() {
                 <h3 className="text-lg font-semibold text-foreground mt-4">Project Content</h3>
 
                 {!projectWithContents ? (
-                    // Skeleton Loading
                     [1, 2, 3].map((i) => (
                         <div key={i} className="bg-card border border-border rounded-xl p-4 flex items-center justify-between animate-pulse">
                             <div className="flex items-center gap-4">
@@ -176,7 +175,6 @@ export default function ProjectDetailsPage() {
                         </div>
                     ))
                 ) : projectWithContents.contents?.length === 0 ? (
-                    // Empty State
                     <div className="text-center py-12 bg-muted/30 border border-border border-dashed rounded-xl">
                         <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center mx-auto mb-4 border border-border text-muted-foreground">
                             <FileText className="w-6 h-6" />
@@ -187,7 +185,6 @@ export default function ProjectDetailsPage() {
                         </p>
                     </div>
                 ) : (
-                    // Actual Content
                     projectWithContents.contents?.map((item, i) => (
                         <motion.div
                             key={item.id}

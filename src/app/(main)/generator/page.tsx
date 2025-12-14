@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { TEMPLATE_CONFIG } from '@/constants/template-config'
 import axiosInstance from '@/lib/axios-instance';
+import { useAuth } from '@/hooks/use-auth';
 
 
 function GeneratorContent() {
@@ -27,6 +28,8 @@ function GeneratorContent() {
 
     const [selectedProvider, setSelectedProvider] = useState<string>('openrouter')
     const [availableProviders, setAvailableProviders] = useState<string[]>([])
+
+    const { refreshUser } = useAuth()
 
     useEffect(() => {
         const providers = ['server']
@@ -45,6 +48,9 @@ function GeneratorContent() {
         api: `/api/generate-content/${templateId}`,
         onError: (err) => {
             console.error("Generation error:", err)
+        },
+        onFinish: async () => {
+            await refreshUser()
         },
         headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`

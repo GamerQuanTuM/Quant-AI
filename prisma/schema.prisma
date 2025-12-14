@@ -13,19 +13,19 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String        @id @default(cuid())
   name          String?
-  email         String    @unique
+  email         String        @unique
   passwordHash  String
   emailVerified DateTime?
   image         String?
-  credits Int      @default(100)
-  plan    PlanType @default(FREE)
-  projects     Project[]
-  transactions Transaction[]
-  tokens       Token[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  credits       Int           @default(100)
+  plan          PlanType      @default(FREE)
+  projects      Project[]
+  transactions  Transaction[]
+  tokens        Token[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model Token {
@@ -40,36 +40,42 @@ model Token {
 }
 
 model Project {
-  id          String  @id @default(cuid())
+  id          String             @id @default(cuid())
   name        String
   description String?
-  slug        String  @unique
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  contents GeneratedContent[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  slug        String             @unique
+  userId      String
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contents    GeneratedContent[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
 
   @@unique([userId, slug])
 }
 
 model GeneratedContent {
-  id String @id @default(cuid())
+  id         String   @id @default(cuid())
   templateId String
   inputData  Json
-  outputText String @db.Text
-  projectId String
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
+  outputText String   @db.Text
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
 }
 
 model Transaction {
-  id     String @id @default(cuid())
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-  amount Int
-  type   TransactionType
-  createdAt DateTime @default(now())
+  id                String            @id @default(cuid())
+  userId            String
+  user              User              @relation(fields: [userId], references: [id])
+  amount            Int
+  type              TransactionType
+  status            TransactionStatus @default(COMPLETED)
+  currency          String?           @default("INR")
+  price             Int?
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @default(now()) @updatedAt
 }
 
 enum PlanType {
@@ -82,4 +88,10 @@ enum TransactionType {
   CREDIT_PURCHASE
   USAGE
   BONUS
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
 }

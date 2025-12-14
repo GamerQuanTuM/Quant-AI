@@ -9,27 +9,29 @@ import { User } from '../../../generated/prisma'
 interface AuthContextType {
     user: User | null
     loading: boolean
+    refreshUser: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextType>({
     user: null,
     loading: true,
+    refreshUser: async () => { }
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
     const [loading, setLoading] = useState(true)
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            try {
-                const userData = await getClientUser()
-                setUser(userData)
-            } finally {
-                setLoading(false)
-            }
+    const fetchUser = async () => {
+        try {
+            const userData = await getClientUser()
+            setUser(userData)
+        } finally {
+            setLoading(false)
         }
+    }
 
+    useEffect(() => {
         fetchUser()
     }, [])
 
@@ -42,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <AuthContext.Provider value={{ user, loading }}>
+        <AuthContext.Provider value={{ user, loading, refreshUser: fetchUser }}>
             {children}
         </AuthContext.Provider>
     )

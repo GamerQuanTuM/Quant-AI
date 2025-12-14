@@ -16,6 +16,7 @@ const blogPostSchema = z.object({
 const BlogPost = async (req: Request, userId: string) => {
    return generateContentStream({
            req,
+           userId,
            schema: blogPostSchema,
            template: blogPostTemplate,
            buildPayload: ({ keywords, outline, title, tone }) => ({

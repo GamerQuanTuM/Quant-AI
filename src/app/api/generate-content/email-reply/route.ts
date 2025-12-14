@@ -17,6 +17,7 @@ const emailReplySchema = z.object({
 const generateEmailReply = async (req: Request, userId: string) => {
     return generateContentStream({
         req,
+        userId,
         schema: emailReplySchema,
         template: emailReplyTemplate,
         buildPayload: ({ sender, receipent, context, response_points, tone }) => ({

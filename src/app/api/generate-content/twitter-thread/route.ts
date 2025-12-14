@@ -15,6 +15,7 @@ const twitterThreadSchema = z.object({
 const TwitterThreadPost = async (req: Request, userId: string) => {
     return generateContentStream({
         req,
+        userId,
         schema: twitterThreadSchema,
         template: twitterThreadTemplate,
         buildPayload: ({ topic, points, tone }) => ({
