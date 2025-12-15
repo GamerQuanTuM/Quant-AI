@@ -20,6 +20,7 @@ const generateEmailReply = async (req: Request, userId: string) => {
         userId,
         schema: emailReplySchema,
         template: emailReplyTemplate,
+        templateId:"email-reply",
         buildPayload: ({ sender, receipent, context, response_points, tone }) => ({
             sender,
             receipent,

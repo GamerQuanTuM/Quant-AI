@@ -5,7 +5,6 @@ import { protect } from "@/middleware/protect"
 
 const recentProject = async (req: Request, userId: string) => {
     try {
-        console.log("Recent projects request for user:", userId);
         const projectsOfUser = await prisma.project.findMany(
             {
                 where: {
@@ -17,7 +16,6 @@ const recentProject = async (req: Request, userId: string) => {
                 take: 3
             }
         )
-        console.log("Found projects:", projectsOfUser.length);
         return NextResponse.json(projectsOfUser, { status: 200 })
     } catch (error) {
         console.error("Error fetching recent projects:", error);

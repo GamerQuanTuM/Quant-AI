@@ -15,6 +15,7 @@ const generateInstagramCaption = async (req: Request, userId: string) => {
         userId,
         schema: instagramCaptionSchema,
         template: instagramCaptionTemplate,
+        templateId:"instagram-caption",
         buildPayload: ({ description, tone }) => ({
             description,
             tone,

@@ -47,7 +47,6 @@ const createOrder = async (req: Request, userId: string) => {
                 amount: credits,
                 price: amountInINR,
                 currency: "INR",
-                type: "CREDIT_PURCHASE",
                 status: "PENDING",
                 razorpayOrderId: order.id,
             }

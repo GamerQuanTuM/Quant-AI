@@ -18,6 +18,7 @@ const TwitterThreadPost = async (req: Request, userId: string) => {
         userId,
         schema: twitterThreadSchema,
         template: twitterThreadTemplate,
+        templateId:"twitter-thread",
         buildPayload: ({ topic, points, tone }) => ({
             topic,
             points,

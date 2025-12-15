@@ -14,18 +14,19 @@ const blogPostSchema = z.object({
 
 
 const BlogPost = async (req: Request, userId: string) => {
-   return generateContentStream({
-           req,
-           userId,
-           schema: blogPostSchema,
-           template: blogPostTemplate,
-           buildPayload: ({ keywords, outline, title, tone }) => ({
-               keywords,
-               outline,
-               title,
-               tone,
-           }),
-       });
+    return generateContentStream({
+        req,
+        userId,
+        schema: blogPostSchema,
+        template: blogPostTemplate,
+        templateId:"blog-post",
+        buildPayload: ({ keywords, outline, title, tone }) => ({
+            keywords,
+            outline,
+            title,
+            tone,
+        }),
+    });
 }
 
 export const POST = protect(BlogPost)

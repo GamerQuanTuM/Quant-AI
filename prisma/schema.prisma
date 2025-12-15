@@ -9,23 +9,32 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  //@ts-ignore
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id            String        @id @default(cuid())
+  id            String         @id @default(cuid())
   name          String?
-  email         String        @unique
+  email         String         @unique
   passwordHash  String
   emailVerified DateTime?
   image         String?
-  credits       Int           @default(100)
-  plan          PlanType      @default(FREE)
+  credits       Int            @default(100)
+  plan          PlanType       @default(FREE)
   projects      Project[]
   transactions  Transaction[]
   tokens        Token[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  history       History[]
+  notification  Notification[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // Indexes for User model
+  @@index([email]) // Fast login lookups
+  @@index([plan]) // Filter users by plan
+  @@index([createdAt]) // Sort/filter by registration date
+  @@index([credits]) // Find low-credit users for notifications
 }
 
 model Token {
@@ -37,6 +46,12 @@ model Token {
   createdAt DateTime @default(now())
   expiry    DateTime
   updatedAt DateTime @updatedAt
+
+  // Indexes for Token model
+  @@index([userId]) // Get all tokens for a user
+  @@index([token]) // Fast token validation
+  @@index([expiry]) // Cleanup expired tokens
+  @@index([userId, expiry]) // Get valid tokens for user
 }
 
 model Project {
@@ -51,6 +66,11 @@ model Project {
   updatedAt   DateTime           @updatedAt
 
   @@unique([userId, slug])
+  // Indexes for Project model
+  @@index([userId]) // Get all projects for a user
+  @@index([userId, updatedAt(sort: Desc)]) // Recent projects per user
+  @@index([slug]) // Fast slug lookup (already unique but explicit)
+  @@index([createdAt]) // Sort by creation date
 }
 
 model GeneratedContent {
@@ -61,6 +81,12 @@ model GeneratedContent {
   projectId  String
   project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
+
+  // Indexes for GeneratedContent model
+  @@index([projectId]) // Get all content for a project
+  @@index([templateId]) // Filter by template type
+  @@index([projectId, createdAt(sort: Desc)]) // Recent content per project
+  @@index([createdAt]) // Global recent content
 }
 
 model Transaction {
@@ -68,7 +94,6 @@ model Transaction {
   userId            String
   user              User              @relation(fields: [userId], references: [id])
   amount            Int
-  type              TransactionType
   status            TransactionStatus @default(COMPLETED)
   currency          String?           @default("INR")
   price             Int?
@@ -76,18 +101,61 @@ model Transaction {
   razorpayPaymentId String?
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @default(now()) @updatedAt
+
+  // Indexes for Transaction model
+  @@index([userId]) // Get all transactions for user
+  @@index([userId, createdAt(sort: Desc)]) // Recent transactions per user
+  @@index([status]) // Filter by status (pending, failed)
+  @@index([razorpayOrderId]) // Fast payment verification
+  @@index([razorpayPaymentId]) // Fast payment lookup
+  @@index([createdAt]) // Date-based reports
+  @@index([userId, status, createdAt(sort: Desc)]) // Pending transactions per user
+}
+
+model History {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  templateSlug String
+  aiResponse   String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Indexes for History model
+  @@index([userId]) // Get all history for user
+  @@index([userId, createdAt(sort: Desc)]) // Recent history per user (MOST IMPORTANT)
+  @@index([templateSlug]) // Filter by template
+  @@index([userId, templateSlug]) // User's history for specific template
+  @@index([createdAt]) // Cleanup old history
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  actor     String?
+  actorId   String?
+  message   String   @db.Text
+  read      Boolean  @default(false)
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Essential indexes for performance:
+  @@index([userId, createdAt(sort: Desc)]) // Fast feed queries (MOST IMPORTANT)
+  @@index([userId, read]) // Filter unread
+  @@index([userId, type]) // Filter by type
+  @@index([userId, read, createdAt(sort: Desc)]) // Unread notifications sorted
+  @@index([actorId]) // Find notifications by actor
+  @@index([createdAt]) // Cleanup old notifications
+  @@map("notifications")
 }
 
 enum PlanType {
   FREE
   PRO
   ENTERPRISE
-}
-
-enum TransactionType {
-  CREDIT_PURCHASE
-  USAGE
-  BONUS
 }
 
 enum TransactionStatus {

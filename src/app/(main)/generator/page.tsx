@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { TEMPLATE_CONFIG } from '@/constants/template-config'
 import axiosInstance from '@/lib/axios-instance';
 import { useAuth } from '@/hooks/use-auth';
+import { useSocket } from '@/hooks/use-socket';
 
 
 function GeneratorContent() {
@@ -30,6 +31,12 @@ function GeneratorContent() {
     const [availableProviders, setAvailableProviders] = useState<string[]>([])
 
     const { refreshUser } = useAuth()
+
+    const {socket} = useSocket()
+
+    socket?.on('content-generate', (data:any) => {
+        console.log(data)
+    })
 
     useEffect(() => {
         const providers = ['server']

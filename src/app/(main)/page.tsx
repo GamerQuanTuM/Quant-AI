@@ -5,9 +5,10 @@ import { motion } from 'framer-motion'
 import { LayoutTemplate, BarChart, ArrowRight, Zap, FileText, Calendar, Clock } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import axiosInstance from '@/lib/axios-instance'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
-import axiosInstance from '@/lib/axios-instance'
+import { useSocket } from '@/hooks/use-socket'
 import { Project } from '../../../generated/prisma'
 
 type Analytics = {
@@ -19,6 +20,7 @@ type Analytics = {
 }
 
 export default function DashboardPage() {
+    const { socket, connected } = useSocket();
 
     const [isLoading, setIsLoading] = useState(true)
     const [analytics, setAnalytics] = useState<Analytics>({
@@ -62,9 +64,7 @@ export default function DashboardPage() {
     const fetchRecentProjects = async () => {
         try {
             const response = await axiosInstance.get('/api/recent-projects')
-            console.log("Recent projects response:", response);
             const data = response.data
-            console.log("Recent projects data:", data);
             setRecentProjects(data)
         } catch (error) {
             console.error('Failed to fetch recent projects:', error)
@@ -78,6 +78,15 @@ export default function DashboardPage() {
         fetchRecentProjects()
     }, [])
 
+    useEffect(() => {
+        if (!connected) return;
+        if (!socket) return;
+        if (!user?.id) return;
+
+        socket.emit("join", { userId: user.id });
+    }, [socket, user?.id, connected]);
+
+
     return (
         <motion.div
             className="space-y-8 max-w-7xl mx-auto"
@@ -85,7 +94,7 @@ export default function DashboardPage() {
             initial="hidden"
             animate="show"
         >
-            {/* Welcome Section */}
+
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h2>
@@ -99,7 +108,7 @@ export default function DashboardPage() {
                 </Link>
             </div>
 
-            {/* Stats Grid */}
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
                     { label: 'Total Projects', value: analytics.totalProjects, icon: LayoutTemplate, change: `${analytics.projectGrowth} this week`, color: 'text-blue-500' },
@@ -136,7 +145,7 @@ export default function DashboardPage() {
                 ))}
             </div>
 
-            {/* Recent Projects */}
+
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <h3 className="text-lg font-semibold text-foreground">Recent Projects</h3>

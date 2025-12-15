@@ -6,12 +6,16 @@ import model from "./model";
 import validate, { ValidationResponseError } from "./zod-validate";
 import z from "zod";
 import { prisma } from "./prisma";
+import { getIO } from "@/lib/socket";
+
+
 
 type GenerateStreamOptions<TInput, TPayload> = {
     req: Request;
-    userId:string;
+    userId: string;
     schema: z.ZodSchema<TInput>;
     template: any;
+    templateId: string;
     buildPayload: (data: TInput) => TPayload;
 };
 
@@ -20,6 +24,7 @@ export const generateContentStream = async <TInput, TPayload>({
     userId,
     schema,
     template,
+    templateId,
     buildPayload,
 }: GenerateStreamOptions<TInput, TPayload>) => {
     try {
@@ -89,13 +94,13 @@ export const generateContentStream = async <TInput, TPayload>({
             select: { credits: true },
         });
 
-        if(user && user.credits < 10){
+        if (user && user.credits < 10) {
             return NextResponse.json(
                 { error: "Not enough credits" },
                 { status: 400 }
-            );  
+            );
         }
-        
+
 
         const data = body?.prompt
             ? JSON.parse(body.prompt)
@@ -106,22 +111,65 @@ export const generateContentStream = async <TInput, TPayload>({
         const parser = new StringOutputParser();
         const chain = template.pipe(activeModel).pipe(parser);
 
+
         const payload = buildPayload(validatedData);
 
-        const stream = await chain.stream(payload);
-
-        await prisma.user.update({
-            where: { id: userId },
-            data: { 
-                credits:{
-                    decrement: 10
+        const generator = await chain.stream(payload);
+        const stream = new ReadableStream({
+            async pull(controller) {
+                const { value, done } = await generator.next();
+                if (done) {
+                    controller.close();
+                } else {
+                    controller.enqueue(value);
                 }
-             },
+            },
+        });
+
+        let fullResponse = "";
+        const transformStream = new TransformStream({
+            transform(chunk, controller) {
+                fullResponse += chunk;
+                controller.enqueue(chunk);
+            },
+            async flush() {
+                await prisma.user.update({
+                    where: { id: userId },
+                    data: {
+                        credits: {
+                            decrement: 10
+                        }
+                    },
+                });
+
+                const history = await prisma.history.create({
+                    data: {
+                        templateSlug: templateId,
+                        aiResponse: fullResponse,
+                        user: {
+                            connect: {
+                                id: userId
+                            }
+                        },
+                    }
+                });
+
+                try {
+                    const io = getIO();
+                    io.to(`user:${userId}`).emit('content-generate', {
+                        message: history,
+                        userId
+                    });
+                } catch (e) {
+                    console.warn("Socket IO not initialized or failed to emit", e);
+                }
+            },
         });
 
         return createUIMessageStreamResponse({
-            stream: toUIMessageStream(stream),
+            stream: toUIMessageStream(stream.pipeThrough(transformStream)),
         });
+
 
     } catch (error) {
         console.error(error);
@@ -145,4 +193,4 @@ export const generateContentStream = async <TInput, TPayload>({
             { status: 500 }
         );
     }
-};
+}

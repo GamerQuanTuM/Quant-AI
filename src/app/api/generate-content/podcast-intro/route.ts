@@ -17,6 +17,7 @@ const generatePodcastIntro = async (req: Request, userId: string) => {
         userId,
         schema: podcastIntroSchema,
         template: podcastIntroTemplate,
+        templateId:"podcast-intro",
         buildPayload: ({ podcastName, episodeTopic, guest, tone }) => ({
             podcastName,
             episodeTopic,

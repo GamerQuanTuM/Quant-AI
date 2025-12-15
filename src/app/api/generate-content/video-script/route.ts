@@ -16,6 +16,7 @@ const generateVideoScript = async (req: Request, userId: string) => {
         userId,
         schema: videoScriptSchema,
         template: videoScriptTemplate,
+        templateId:"video-script",
         buildPayload: ({ topic, platform, tone }) => ({
             topic,
             platform,

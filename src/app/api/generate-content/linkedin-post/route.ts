@@ -19,6 +19,7 @@ const generateLinkedinPost = async (req: Request, userId: string) => {
         userId,
         schema: linkedinPostSchema,
         template: linkedinPostTemplate,
+        templateId:"linkedin-post",
         buildPayload: ({ topic, audience, takeaways, tone }) => ({
             topic,
             audience,

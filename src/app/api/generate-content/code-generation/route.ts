@@ -16,6 +16,7 @@ const generateCode = async (req: Request, userId: string) => {
         userId,
         schema: codeGenerationSchema,
         template: codeGenerationTemplate,
+        templateId:"code-generation",
         buildPayload: ({ description, language, context }) => ({
             description,
             language,
