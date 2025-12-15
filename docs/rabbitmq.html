@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RabbitMQ Patterns Explained</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .pattern-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        .pattern-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .pattern-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .pattern-number {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            margin-right: 20px;
+        }
+        
+        .pattern-title {
+            flex: 1;
+        }
+        
+        .pattern-title h2 {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+        
+        .pattern-subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .flow-diagram {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 20px 0;
+            position: relative;
+            overflow-x: auto;
+        }
+        
+        .flow-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .flow-box {
+            padding: 15px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            min-width: 120px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .producer {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .queue {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .exchange {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .consumer {
+            background: #9C27B0;
+            color: white;
+        }
+        
+        .arrow {
+            font-size: 2em;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .use-cases {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .use-cases h3 {
+            color: #1976D2;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .use-case-list {
+            list-style: none;
+        }
+        
+        .use-case-list li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .use-case-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+        
+        .pros-cons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .pros, .cons {
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .pros {
+            background: #e8f5e9;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .cons {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+        
+        .pros h4, .cons h4 {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+        
+        .pros h4 {
+            color: #2e7d32;
+        }
+        
+        .cons h4 {
+            color: #c62828;
+        }
+        
+        .example-code {
+            background: #263238;
+            color: #aed581;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .example-code pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        
+        .routing-keys {
+            background: #fff3e0;
+            border: 2px dashed #ff9800;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .routing-keys strong {
+            color: #e65100;
+        }
+        
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .comparison-table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .comparison-table tr:hover {
+            background: #f5f5f5;
+        }
+        
+        @media (max-width: 768px) {
+            .pros-cons {
+                grid-template-columns: 1fr;
+            }
+            
+            .flow-row {
+                flex-direction: column;
+            }
+            
+            .arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐰 RabbitMQ Patterns Explained</h1>
+        
+        <!-- PATTERN 1: WORK QUEUE -->
+        <div class="pattern-card">
+            <div class="pattern-header">
+                <div class="pattern-number">1</div>
+                <div class="pattern-title">
+                    <h2>Work Queue (Point-to-Point)</h2>
+                    <div class="pattern-subtitle">One message → One consumer</div>
+                </div>
+            </div>
+            
+            <div class="flow-diagram">
+                <div class="flow-row">
+                    <div class="flow-box producer">Producer</div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box queue">Queue</div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box consumer">Consumer 1</div>
+                </div>
+                <div class="flow-row">
+                    <div style="width: 120px"></div>
+                    <div style="width: 60px"></div>
+                    <div style="width: 120px"></div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box consumer">Consumer 2</div>
+                </div>
+                <div class="flow-row">
+                    <div style="width: 120px"></div>
+                    <div style="width: 60px"></div>
+                    <div style="width: 120px"></div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box consumer">Consumer 3</div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; color: #666; font-style: italic; margin: 10px 0;">
+                ⚠️ Each message is processed by ONLY ONE consumer (round-robin)
+            </div>
+            
+            <div class="use-cases">
+                <h3>📌 When to Use</h3>
+                <ul class="use-case-list">
+                    <li><strong>Task Processing:</strong> Background jobs that should run exactly once (sending emails, generating reports)</li>
+                    <li><strong>Payment Processing:</strong> Each payment must be processed by only one worker</li>
+                    <li><strong>Image/Video Processing:</strong> Heavy tasks distributed among workers</li>
+                    <li><strong>Data Import:</strong> Import records where each record should be processed once</li>
+                    <li><strong>Order Processing:</strong> Each order processed by one worker to avoid duplication</li>
+                </ul>
+            </div>
+            
+            <div class="pros-cons">
+                <div class="pros">
+                    <h4>✅ Pros</h4>
+                    <ul class="use-case-list">
+                        <li>Load balancing across workers</li>
+                        <li>Guaranteed single processing</li>
+                        <li>Easy to scale (add more consumers)</li>
+                        <li>Simple to implement</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h4>❌ Cons</h4>
+                    <ul class="use-case-list">
+                        <li>No message broadcasting</li>
+                        <li>Can't have multiple services react</li>
+                        <li>No routing flexibility</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="example-code">
+                <pre>// Send task to queue
+await publishToQueue('email-queue', { 
+  to: 'user@example.com', 
+  subject: 'Hello' 
+});
+
+// Process tasks (only ONE worker gets each message)
+await consumeQueue('email-queue', async (msg) => {
+  await sendEmail(msg);
+});</pre>
+            </div>
+        </div>
+
+        <!-- PATTERN 2: FANOUT -->
+        <div class="pattern-card">
+            <div class="pattern-header">
+                <div class="pattern-number">2</div>
+                <div class="pattern-title">
+                    <h2>Fanout (Broadcast)</h2>
+                    <div class="pattern-subtitle">One message → All subscribers</div>
+                </div>
+            </div>
+            
+            <div class="flow-diagram">
+                <div class="flow-row">
+                    <div class="flow-box producer">Producer</div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box exchange">Fanout Exchange</div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box consumer">Email Service</div>
+                </div>
+                <div class="flow-row">
+                    <div style="width: 120px"></div>
+                    <div style="width: 60px"></div>
+                    <div style="width: 170px"></div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box consumer">SMS Service</div>
+                </div>
+                <div class="flow-row">
+                    <div style="width: 120px"></div>
+                    <div style="width: 60px"></div>
+                    <div style="width: 170px"></div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box consumer">Push Service</div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; color: #666; font-style: italic; margin: 10px 0;">
+                ✨ ALL subscribers receive the SAME message (no routing keys)
+            </div>
+            
+            <div class="use-cases">
+                <h3>📌 When to Use</h3>
+                <ul class="use-case-list">
+                    <li><strong>Notifications:</strong> Send announcements to all channels (email, SMS, push)</li>
+                    <li><strong>Cache Invalidation:</strong> Notify all servers to clear cache</li>
+                    <li><strong>Real-time Updates:</strong> Broadcast stock prices to all connected clients</li>
+                    <li><strong>System Events:</strong> User signup → notify analytics, email, CRM, etc.</li>
+                    <li><strong>Data Replication:</strong> Replicate data changes to multiple databases</li>
+                </ul>
+            </div>
+            
+            <div class="pros-cons">
+                <div class="pros">
+                    <h4>✅ Pros</h4>
+                    <ul class="use-case-list">
+                        <li>All services react to same event</li>
+                        <li>Decoupled microservices</li>
+                        <li>Easy to add new subscribers</li>
+                        <li>No routing complexity</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h4>❌ Cons</h4>
+                    <ul class="use-case-list">
+                        <li>No message filtering</li>
+                        <li>All subscribers get everything</li>
+                        <li>Can't route selectively</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="example-code">
+                <pre>// Broadcast to all subscribers
+await broadcast('announcements', { 
+  title: 'Maintenance Alert', 
+  message: 'System down at 2am' 
+});
+
+// Subscriber 1: Email Service (gets message)
+await subscribeToBroadcast('announcements', async (msg) => {
+  await sendEmails(msg);
+});
+
+// Subscriber 2: SMS Service (gets SAME message)
+await subscribeToBroadcast('announcements', async (msg) => {
+  await sendSMS(msg);
+});</pre>
+            </div>
+        </div>
+
+        <!-- PATTERN 3: TOPIC -->
+        <div class="pattern-card">
+            <div class="pattern-header">
+                <div class="pattern-number">3</div>
+                <div class="pattern-title">
+                    <h2>Topic (Pattern-Based Routing)</h2>
+                    <div class="pattern-subtitle">Route by wildcard patterns</div>
+                </div>
+            </div>
+            
+            <div class="flow-diagram">
+                <div class="flow-row">
+                    <div class="flow-box producer">Producer<br/><small>auth.error</small></div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box exchange">Topic Exchange</div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box consumer">Error Monitor<br/><small>*.error</small></div>
+                </div>
+                <div class="flow-row">
+                    <div class="flow-box producer">Producer<br/><small>payment.info</small></div>
+                    <div class="arrow">→</div>
+                    <div style="width: 170px"></div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box consumer">Auth Service<br/><small>auth.*</small></div>
+                </div>
+                <div class="flow-row">
+                    <div class="flow-box producer">Producer<br/><small>auth.warning</small></div>
+                    <div class="arrow">→</div>
+                    <div style="width: 170px"></div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box consumer">All Logs<br/><small>#</small></div>
+                </div>
+            </div>
+            
+            <div class="routing-keys">
+                <strong>Routing Key Patterns:</strong><br/>
+                • <code>*</code> = matches exactly one word (e.g., <code>auth.*</code> matches <code>auth.error</code>, <code>auth.info</code>)<br/>
+                • <code>#</code> = matches zero or more words (e.g., <code>log.#</code> matches <code>log.error</code>, <code>log.auth.error</code>)<br/>
+                • Exact match: <code>auth.error</code> only matches <code>auth.error</code>
+            </div>
+            
+            <div class="use-cases">
+                <h3>📌 When to Use</h3>
+                <ul class="use-case-list">
+                    <li><strong>Logging Systems:</strong> Route logs by severity/service (error monitor gets *.error)</li>
+                    <li><strong>Event Routing:</strong> Different services subscribe to relevant events</li>
+                    <li><strong>Monitoring:</strong> Route metrics by type (cpu.*, memory.*, disk.*)</li>
+                    <li><strong>Multi-tenant:</strong> Route messages by customer (customer.123.*, customer.456.*)</li>
+                    <li><strong>Geographical Routing:</strong> Route by region (us.east.*, eu.west.*)</li>
+                </ul>
+            </div>
+            
+            <div class="pros-cons">
+                <div class="pros">
+                    <h4>✅ Pros</h4>
+                    <ul class="use-case-list">
+                        <li>Flexible pattern matching</li>
+                        <li>Multiple subscribers per pattern</li>
+                        <li>Complex routing logic</li>
+                        <li>Hierarchical organization</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h4>❌ Cons</h4>
+                    <ul class="use-case-list">
+                        <li>More complex than fanout</li>
+                        <li>Requires routing key design</li>
+                        <li>Can be harder to debug</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="example-code">
+                <pre>// Publish with routing key
+await publishToExchange('logs', 'auth.error', {
+  message: 'Login failed'
+}, 'topic');
+
+// Subscribe to all errors
+await subscribeToExchange('logs', '*.error', async (msg, key) => {
+  console.log('ERROR:', key, msg);
+}, 'topic');
+
+// Subscribe to all auth logs
+await subscribeToExchange('logs', 'auth.*', async (msg, key) => {
+  console.log('AUTH:', key, msg);
+}, 'topic');</pre>
+            </div>
+        </div>
+
+        <!-- PATTERN 4: DIRECT -->
+        <div class="pattern-card">
+            <div class="pattern-header">
+                <div class="pattern-number">4</div>
+                <div class="pattern-title">
+                    <h2>Direct (Exact Key Matching)</h2>
+                    <div class="pattern-subtitle">Route by exact routing key</div>
+                </div>
+            </div>
+            
+            <div class="flow-diagram">
+                <div class="flow-row">
+                    <div class="flow-box producer">Producer<br/><small>high</small></div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box exchange">Direct Exchange</div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box consumer">Fast Worker<br/><small>high</small></div>
+                </div>
+                <div class="flow-row">
+                    <div class="flow-box producer">Producer<br/><small>medium</small></div>
+                    <div class="arrow">→</div>
+                    <div style="width: 170px"></div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box consumer">Normal Worker<br/><small>medium</small></div>
+                </div>
+                <div class="flow-row">
+                    <div class="flow-box producer">Producer<br/><small>low</small></div>
+                    <div class="arrow">→</div>
+                    <div style="width: 170px"></div>
+                    <div class="arrow">→</div>
+                    <div class="flow-box consumer">Batch Worker<br/><small>low</small></div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; color: #666; font-style: italic; margin: 10px 0;">
+                🎯 Message goes ONLY to queue with matching routing key
+            </div>
+            
+            <div class="use-cases">
+                <h3>📌 When to Use</h3>
+                <ul class="use-case-list">
+                    <li><strong>Priority Queues:</strong> Route tasks by priority (high, medium, low)</li>
+                    <li><strong>Department Routing:</strong> Route tickets by department (sales, support, billing)</li>
+                    <li><strong>Environment Routing:</strong> Route deploys by environment (dev, staging, prod)</li>
+                    <li><strong>Language Routing:</strong> Route content by language (en, es, fr)</li>
+                    <li><strong>Type-based Processing:</strong> Different processors for different file types</li>
+                </ul>
+            </div>
+            
+            <div class="pros-cons">
+                <div class="pros">
+                    <h4>✅ Pros</h4>
+                    <ul class="use-case-list">
+                        <li>Simple exact matching</li>
+                        <li>Clear routing logic</li>
+                        <li>Easy to understand</li>
+                        <li>Faster than topic matching</li>
+                    </ul>
+                </div>
+                <div class="cons">
+                    <h4>❌ Cons</h4>
+                    <ul class="use-case-list">
+                        <li>No pattern matching</li>
+                        <li>Less flexible than topic</li>
+                        <li>Requires exact key match</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="example-code">
+                <pre>// Send to high-priority queue
+await publishToExchange('tasks', 'high', {
+  task: 'urgent-report'
+}, 'direct');
+
+// High-priority worker (only gets 'high' messages)
+await subscribeToExchange('tasks', 'high', async (msg) => {
+  await processUrgent(msg);
+}, 'direct');
+
+// Low-priority worker (only gets 'low' messages)
+await subscribeToExchange('tasks', 'low', async (msg) => {
+  await processBatch(msg);
+}, 'direct');</pre>
+            </div>
+        </div>
+
+        <!-- COMPARISON TABLE -->
+        <div class="pattern-card">
+            <h2 style="margin-bottom: 20px;">📊 Quick Comparison</h2>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Pattern</th>
+                        <th>Routing</th>
+                        <th>Use When</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Work Queue</strong></td>
+                        <td>One message → One consumer</td>
+                        <td>Task must be processed exactly once</td>
+                        <td>Payment processing, email sending</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Fanout</strong></td>
+                        <td>Broadcast to all</td>
+                        <td>All services need same event</td>
+                        <td>Notifications, cache invalidation</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Topic</strong></td>
+                        <td>Pattern matching (*, #)</td>
+                        <td>Complex routing by categories</td>
+                        <td>Logging, multi-criteria routing</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Direct</strong></td>
+                        <td>Exact key match</td>
+                        <td>Simple categorical routing</td>
+                        <td>Priority queues, department routing</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- DECISION TREE -->
+        <div class="pattern-card">
+            <h2 style="margin-bottom: 20px;">🌳 Decision Tree: Which Pattern to Use?</h2>
+            <div class="flow-diagram">
+                <div style="text-align: center; padding: 20px; line-height: 2;">
+                    <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 20px;">
+                        Does each message need to be processed by only ONE consumer?
+                    </div>
+                    <div style="display: flex; justify-content: space-around; margin-top: 20px;">
+                        <div style="flex: 1; padding: 20px;">
+                            <div style="background: #4CAF50; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                                ✓ YES → Use <strong>Work Queue</strong>
+                            </div>
+                            <div style="color: #666;">
+                                Examples: Payment processing, task processing
+                            </div>
+                        </div>
+                        <div style="flex: 1; padding: 20px;">
+                            <div style="background: #2196F3; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                                ✗ NO → Use <strong>Pub/Sub (Exchange)</strong>
+                            </div>
+                            <div style="margin-top: 20px;">
+                                <div style="font-weight: bold; margin-bottom: 10px;">Need routing?</div>
+                                <div style="padding: 10px; background: #e3f2fd; border-radius: 5px; margin: 5px 0;">
+                                    <strong>No routing:</strong> Fanout
+                                </div>
+                                <div style="padding: 10px; background: #fff3e0; border-radius: 5px; margin: 5px 0;">
+                                    <strong>Simple routing:</strong> Direct
+                                </div>
+                                <div style="padding: 10px; background: #f3e5f5; border-radius: 5px; margin: 5px 0;">
+                                    <strong>Complex patterns:</strong> Topic
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>
