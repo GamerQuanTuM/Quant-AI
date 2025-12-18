@@ -1,11 +1,12 @@
 'use client'
 
-import { Search, Plus, Bell, Menu } from 'lucide-react'
+import { Search, Plus, Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Link from 'next/link'
 import { useSidebar } from '@/lib/sidebar-context'
 import { ModeToggle } from '@/components/mode-toggle'
+import { NotificationBell } from '@/components/notification-bell'
 
 export function Header() {
     const { toggleMobileSidebar } = useSidebar()
@@ -23,10 +24,7 @@ export function Header() {
             <div className="flex items-center gap-2 md:gap-4 ml-2">
                 <ModeToggle />
 
-                <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground relative hidden md:flex">
-                    <Bell className="w-5 h-5" />
-                    <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-background" />
-                </Button>
+                <NotificationBell />
 
                 <Link href="/project/create">
                     <Button className="h-9 bg-primary hover:bg-primary/90 rounded-full text-xs font-medium px-3 md:px-4 gap-2 shadow-lg shadow-primary/25 whitespace-nowrap text-primary-foreground">

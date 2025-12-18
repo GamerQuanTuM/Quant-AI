@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { protect } from "@/middleware/protect"
 import validate, { ValidationResponseError } from "@/lib/zod-validate"
 import z from "zod"
+import { publishToQueue } from "@/lib/rabbitmq"
 
 const createProjectSchema = z.object({
     name: z.string().min(3, "Name must be at least 3 characters long"),
@@ -27,7 +28,7 @@ const createProject = async (req: Request, userId: string) => {
             return NextResponse.json({ error: "Slug already exists" }, { status: 400 })
         }
 
-        const createProject = await prisma.project.create({
+        const project = await prisma.project.create({
             data: {
                 name,
                 description,
@@ -35,7 +36,24 @@ const createProject = async (req: Request, userId: string) => {
                 userId,
             }
         })
-        return NextResponse.json(createProject, { status: 200 })
+
+        // Publish notification
+        try {
+            console.log(`📤 Publishing notification for project creation: ${project.name}`);
+            await publishToQueue('notifications', {
+                userId,
+                type: 'PROJECT_CREATED',
+                message: `Project "${project.name}" created successfully.`,
+                actor: 'User',
+                actorId: userId,
+                metadata: { projectId: project.id, slug: project.slug }
+            });
+            console.log(`✅ Notification published to queue 'notifications'`);
+        } catch (error) {
+            console.error("❌ Failed to publish notification:", error);
+        }
+
+        return NextResponse.json(project, { status: 200 })
     } catch (error) {
         if (error instanceof ValidationResponseError) {
             return error.response;

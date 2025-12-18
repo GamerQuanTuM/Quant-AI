@@ -1,55 +1,138 @@
-# Project Workflow Overview
+# 🤖 AI Content Generator Dashboard
 
-This document outlines the complete user journey and technical flow of the Content Generator Dashboard.
+A production-grade, event-driven Next.js application designed to generate, manage, and organize AI-generated content. Built with a focus on scalability, real-time feedback, and robust architecture using **Next.js 15**, **TypeScript**, **RabbitMQ**, **Socket.IO**, and **PostgreSQL**.
 
-## 1. Authentication & Onboarding
-*   **User Action**: User signs up (`/signup`) or logs in (`/login`).
-*   **System Action**: 
-    *   Creates a `User` record in the database.
-    *   Initializes the user with **default credits** (e.g., 100 free credits) and the `FREE` plan.
-    *   Redirects to the **Dashboard Home** (`/`).
+---
 
-## 2. Project Creation (The Core Container)
-*   **Concept**: Every piece of content belongs to a "Project". A project acts as a folder or campaign (e.g., "Q4 Marketing", "New Product Launch").
-*   **User Action**: 
-    *   User clicks "Create New Project".
-    *   User provides a Name (e.g., "Q4 Marketing").
-*   **System Action**:
-    *   Generates a URL-friendly `slug` (e.g., `q4-marketing`).
-    *   Creates a `Project` record linked to the `User`.
-    *   Redirects user to the **Project Dashboard** (`/project/q4-marketing`).
+## 🚀 Key Features
 
-## 3. Content Generation Flow
-This is the core value loop of the application.
+*   **AI Content Generation**: Dynamic templates for Blog Posts, LinkedIn usage, and more using LangChain (OpenAI/Anthropic).
+*   **Project-Based Organization**: Group content into campaigns/projects for better workflow management.
+*   **Real-Time Notifications**: Instant feedback system for background tasks (Project creation, Generation completion) via WebSockets.
+*   **Event-Driven Architecture**: Decoupled background workers ensure the dashboard remains fast and responsive.
+*   **Smart Caching & History**: Full timeline of user generation history with "Copy to Clipboard" and "Regenerate" capabilities.
+*   **Credit System**: Built-in credit management and usage tracking integration (Razorpay ready).
+*   **Secure Authentication**: JWT-based stateless authentication with robust middleware protection.
 
-1.  **Select Template**:
-    *   User navigates to the **Templates** page or clicks "Generate New" inside a project.
-    *   User selects a specific tool (e.g., "LinkedIn Post", "Blog Article").
-    *   This sets the `templateId` context.
+---
 
-2.  **Configure Generation**:
-    *   User lands on the **Generator Page** (`/generator`).
-    *   **Validation**: The system checks if a `Project` is selected. If not, the user MUST select one from the dropdown (enforced to ensure data organization).
-    *   **Input**: User fills in dynamic fields specific to the template (Topic, Tone, Audience).
+## 🛠️ Technical Stack
 
-3.  **AI Processing**:
-    *   User clicks "Generate".
-    *   **Backend**: 
-        *   Deducts credits from `User.credits`.
-        *   Calls AI Provider (OpenAI/Anthropic) with the specific prompt.
-        *   Receives the generated text.
+### **Core**
+*   **Framework**: Next.js 15 (App Router)
+*   **Language**: TypeScript (Strict Mode)
+*   **Styling**: Tailwind CSS v4 + Framer Motion (Animations)
+*   **Components**: Lucide React Icons
 
-4.  **Save & Store**:
-    *   System creates a `GeneratedContent` record.
-    *   Stores `inputData` (JSON) to allow "Remixing" or "Regenerating" later.
-    *   Stores `outputText` (the result).
-    *   Links record to the selected `Project`.
+### **Backend & Infrastructure**
+*   **Server**: Custom Node.js Server (`server.ts`) wrapping Next.js to support WebSockets.
+*   **Database**: PostgreSQL (via Prisma ORM).
+*   **Message Queue**: RabbitMQ (handling async tasks like Notifications).
+*   **Real-time**: Socket.IO (Bidirectional communication).
+*   **Protection**: Redis (API Rate Limiting & security).
+*   **Validation**: Zod (Schema validation).
 
-## 4. Consumption & Management
-*   **Project View**: User visits `/project/[slug]` to see all content specific to that campaign.
-*   **History**: User visits `/history` to see a chronological timeline of all generations across all projects.
-*   **Export**: User can copy, edit, or download the generated text.
+---
 
-## 5. Billing & Credits
-*   **Usage**: Every generation costs X credits (logged via `Transaction` table).
-*   **Refill**: User visits `/billing` to purchase more credits (`Transaction` type `CREDIT_PURCHASE`), updating their `User.credits` balance.
+## 🏗️ Architecture & Flows
+
+The application uses a **Microservices-lite** approach within a Monorepo interaction model.
+
+### 1. The Event-Driven Notification System
+Instead of blocking the user's request to send notifications or save non-critical data, we utilize an asynchronous queue system.
+
+**The Loopback Flow:**
+1.  **Client/API**: User performs an action (e.g., Creates a Project).
+2.  **Producer**: The API Route publishes a message to the `notifications` RabbitMQ queue.
+3.  **Worker Service** (`worker.ts`):
+    *   Runs as a separate process.
+    *   Consumes the message.
+    *   Saves the notification to Postgres (Prisma).
+    *   **Publishes** a new message to the `socket_events` queue.
+4.  **Web Server**:
+    *   Consumes the `socket_events` queue.
+    *   Emits the event via **Socket.IO** to the specific user's room.
+5.  **Client**: The `NotificationBell` component receives the event and optimistically updates the UI.
+
+### 2. Worker Offloading
+Heavy computational tasks or database-heavy logging operations are offloaded to `worker.ts`. This ensures:
+*   The API responds immediately (< 100ms).
+*   The main web server isn't bogging down by background processing.
+*   The main web server isn't bogging down by background processing.
+*   Reliability (Queued tasks are persistent).
+
+### 3. API Rate Limiting (Protection)
+To prevent abuse and DDoS attacks, we employ **Redis-based sliding window rate limiting** via the `protect()` middleware.
+*   **Logic**: Limits users to ~20 requests/minute.
+*   **Storage**: Uses Redis `INCR` and `EXPIRE` for atomic, high-performance tracking.
+*   **Fail-Safe**: If Redis is down, the system fails-open to allow legitimate traffic to continue.
+
+---
+
+## 🏁 Getting Started
+
+### Prerequisites
+*   Node.js 18+
+*   PostgreSQL
+*   RabbitMQ (Local or Cloud like CloudAMQP)
+
+### 1. Installation
+```bash
+npm install
+```
+
+### 2. Environment Variables
+Create a `.env` file:
+```env
+DATABASE_URL="postgresql://user:pass@localhost:5432/mydb"
+JWT_SECRET="your-super-secret"
+RABBITMQ_URL="amqp://user:pass@localhost:5672"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+# OpenAI / Anthropic Keys if applicable
+```
+
+### 3. Database Setup
+```bash
+npx prisma generate
+npx prisma db push
+```
+
+### 4. Running the Application
+You need to run **two** processes for the full system to function:
+
+**Terminal 1: Web Server & Socket Consumer**
+```bash
+npm run dev
+# Starts Next.js + Socket.IO Server on port 3000
+```
+
+**Terminal 2: Background Worker**
+```bash
+npm run worker
+# Starts the RabbitMQ Consumer for DB writes
+```
+
+---
+
+## 📂 Project Structure
+
+*   **/src/app**: Next.js App Router pages and API routes.
+*   **/src/components**: Reusable UI components (NotificationBell, etc.).
+*   **/src/lib**: Core utilities.
+    *   `rabbitmq.ts`: Connection and pub/sub logic.
+    *   `socket.ts`: Singleton Socket instance.
+    *   `notification-consumer.ts`: Worker logic for saving notifs.
+    *   `socket-event-consumer.ts`: Server logic for emitting events.
+*   **/prisma**: Database schema.
+*   `server.ts`: Custom server entry point.
+*   `worker.ts`: Worker process entry point.
+
+
+---
+
+## 🤝 Contribution
+1.  Fork the repo.
+2.  Create a feature branch (`git checkout -b feature/amazing-feature`).
+3.  Commit changes (`git commit -m 'Add amazing feature'`).
+4.  Push to branch (`git push origin feature/amazing-feature`).
+5.  Open a Pull Request.

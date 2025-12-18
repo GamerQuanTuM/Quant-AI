@@ -2,6 +2,7 @@
 import { createServer } from "node:http";
 import next from "next";
 import { getIO } from "@/lib/socket";
+import { startSocketEventConsumer } from "@/lib/socket-event-consumer";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -14,10 +15,17 @@ const handler = app.getRequestHandler();
 const socketUsers = new Map<string, string>();
 const socketToUser = new Map<string, string>(); // Reverse mapping
 
-app.prepare().then(() => {
+app.prepare().then(async () => {
   const httpServer = createServer(handler);
 
   const io = getIO(httpServer);
+
+  try {
+    await startSocketEventConsumer();
+    console.log("✅ Socket Event Consumer started");
+  } catch (error) {
+    console.error("❌ Failed to start socket event consumer:", error);
+  }
 
   io.on("connection", (socket) => {
     console.log("🟢 Socket Connected:", socket.id);

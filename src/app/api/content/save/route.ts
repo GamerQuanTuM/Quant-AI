@@ -3,6 +3,7 @@ import validate, { ValidationResponseError } from "@/lib/zod-validate";
 import { protect } from "@/middleware/protect"
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { publishToQueue } from "@/lib/rabbitmq";
 
 const saveContentSchema = z.object({
     content: z.string(),
@@ -15,7 +16,7 @@ const saveContent = async (req: Request, userId: string) => {
     try {
         const body = await req.json()
 
-        const {content,inputData,projectId,templateId} = validate(saveContentSchema, body)
+        const { content, inputData, projectId, templateId } = validate(saveContentSchema, body)
 
         const save = await prisma.generatedContent.create({
             data: {
@@ -29,6 +30,16 @@ const saveContent = async (req: Request, userId: string) => {
                 }
             }
         })
+
+        // Publish notification
+        publishToQueue('notifications', {
+            userId,
+            type: 'CONTENT_SAVED',
+            message: `New content generated and saved.`,
+            actor: 'User',
+            actorId: userId,
+            metadata: { contentId: save.id, projectId: projectId, templateId: templateId }
+        }).catch(err => console.error("Failed to publish notification:", err));
 
         return NextResponse.json({ save }, { status: 200 })
 
