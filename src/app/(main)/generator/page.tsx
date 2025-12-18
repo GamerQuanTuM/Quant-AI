@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { Wand2, Copy, Save, ArrowLeft, Loader2 } from 'lucide-react'
 import { useCompletion } from '@ai-sdk/react';
 import Link from 'next/link'
-import ReactMarkdown from 'react-markdown'
+
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getClientUser } from '@/lib/user-client'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,7 @@ import { TEMPLATE_CONFIG } from '@/constants/template-config'
 import axiosInstance from '@/lib/axios-instance';
 import { useAuth } from '@/hooks/use-auth';
 import { useSocket } from '@/hooks/use-socket';
+import { MarkdownRenderer } from '@/components/markdown-renderer';
 
 
 function GeneratorContent() {
@@ -32,9 +33,9 @@ function GeneratorContent() {
 
     const { refreshUser } = useAuth()
 
-    const {socket} = useSocket()
+    const { socket } = useSocket()
 
-    socket?.on('content-generate', (data:any) => {
+    socket?.on('content-generate', (data: any) => {
         console.log(data)
     })
 
@@ -229,28 +230,7 @@ function GeneratorContent() {
         }
     }
 
-    const markdownComponents = {
-        h1: ({ node, ...props }: any) => <h1 className="text-2xl font-bold text-foreground mt-6 mb-4" {...props} />,
-        h2: ({ node, ...props }: any) => <h2 className="text-xl font-semibold text-foreground mt-5 mb-3" {...props} />,
-        h3: ({ node, ...props }: any) => <h3 className="text-lg font-medium text-foreground mt-4 mb-2" {...props} />,
-        p: ({ node, ...props }: any) => <p className="text-muted-foreground mb-3 leading-relaxed" {...props} />,
-        ul: ({ node, ...props }: any) => <ul className="list-disc pl-5 text-muted-foreground mb-3" {...props} />,
-        ol: ({ node, ...props }: any) => <ol className="list-decimal pl-5 text-muted-foreground mb-3" {...props} />,
-        li: ({ node, ...props }: any) => <li className="mb-1" {...props} />,
-        strong: ({ node, ...props }: any) => <strong className="font-semibold text-foreground" {...props} />,
-        em: ({ node, ...props }: any) => <em className="italic text-muted-foreground" {...props} />,
-        blockquote: ({ node, ...props }: any) => (
-            <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground my-3" {...props} />
-        ),
-        code: ({ node, inline, ...props }: any) =>
-            inline ? (
-                <code className="text-primary font-bold italic text-sm font-mono" {...props} />
-            ) : (
-                <code className="text-foreground text-sm font-mono" {...props} />
-            ),
-        pre: ({ node, ...props }: any) => <pre className="my-3 overflow-x-auto bg-muted p-4 rounded-lg" {...props} />,
-        a: ({ node, ...props }: any) => <a className="text-primary hover:text-primary/80 underline" {...props} />,
-    }
+
 
     return (
         <div className="max-w-7xl mx-auto h-[calc(100vh-8rem)] flex flex-col">
@@ -408,9 +388,7 @@ function GeneratorContent() {
                                     animate={{ opacity: 1 }}
                                     className="text-foreground leading-relaxed"
                                 >
-                                    <ReactMarkdown components={markdownComponents}>
-                                        {completion}
-                                    </ReactMarkdown>
+                                    <MarkdownRenderer content={completion} />
                                 </motion.div>
                             ) : (
                                 <motion.div

@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import ReactMarkdown from 'react-markdown'
 import axiosInstance from '@/lib/axios-instance'
+import { MarkdownRenderer } from '@/components/markdown-renderer'
 import { TEMPLATE_CONFIG } from '@/constants/template-config'
 
 const formatDate = (date: Date | string) => {
@@ -52,28 +52,7 @@ export default function ProjectDetailsPage() {
     const [itemToDelete, setItemToDelete] = useState<GeneratedContent | null>(null)
 
 
-    const markdownComponents = {
-        h1: ({ node, ...props }: any) => <h1 className="text-2xl font-bold text-foreground mt-6 mb-4" {...props} />,
-        h2: ({ node, ...props }: any) => <h2 className="text-xl font-semibold text-foreground mt-5 mb-3" {...props} />,
-        h3: ({ node, ...props }: any) => <h3 className="text-lg font-medium text-foreground mt-4 mb-2" {...props} />,
-        p: ({ node, ...props }: any) => <p className="text-muted-foreground mb-3 leading-relaxed" {...props} />,
-        ul: ({ node, ...props }: any) => <ul className="list-disc pl-5 text-muted-foreground mb-3" {...props} />,
-        ol: ({ node, ...props }: any) => <ol className="list-decimal pl-5 text-muted-foreground mb-3" {...props} />,
-        li: ({ node, ...props }: any) => <li className="mb-1" {...props} />,
-        strong: ({ node, ...props }: any) => <strong className="font-semibold text-foreground" {...props} />,
-        em: ({ node, ...props }: any) => <em className="italic text-muted-foreground" {...props} />,
-        blockquote: ({ node, ...props }: any) => (
-            <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground my-3" {...props} />
-        ),
-        code: ({ node, inline, ...props }: any) =>
-            inline ? (
-                <code className="text-primary font-bold italic text-sm font-mono" {...props} />
-            ) : (
-                <code className="text-foreground text-sm font-mono" {...props} />
-            ),
-        pre: ({ node, ...props }: any) => <pre className="my-3 overflow-x-auto bg-muted p-4 rounded-lg" {...props} />,
-        a: ({ node, ...props }: any) => <a className="text-primary hover:text-primary/80 underline" {...props} />,
-    }
+
 
     const fetchContents = async () => {
         try {
@@ -322,9 +301,7 @@ export default function ProjectDetailsPage() {
 
                                     <div className={`prose dark:prose-invert max-w-none text-foreground leading-relaxed ${viewMode === 'preview' ? '' : 'whitespace-pre-wrap'}`}>
                                         {viewMode === 'preview' ? (
-                                            <ReactMarkdown components={markdownComponents}>
-                                                {selectedContent.outputText}
-                                            </ReactMarkdown>
+                                            <MarkdownRenderer content={selectedContent.outputText} />
                                         ) : (
                                             <pre className="whitespace-pre-wrap font-mono text-sm text-muted-foreground bg-muted/30 p-4 rounded-lg border border-border">
                                                 {selectedContent.outputText}
