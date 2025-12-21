@@ -177,3 +177,4 @@ Retrieves detailed information about a specific project by its slug.
 curl -X GET "/api/public/get-project/my-blog-post?content=true" \
   -H "Authorization: Bearer <YOUR_TOKEN>"
 ```
+
