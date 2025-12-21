@@ -136,3 +136,44 @@ npm run worker
 3.  Commit changes (`git commit -m 'Add amazing feature'`).
 4.  Push to branch (`git push origin feature/amazing-feature`).
 5.  Open a Pull Request.
+
+---
+
+## 🔌 Public API
+
+The application exposes a public API for developers to programmatically access their data.
+
+### Authentication
+All public API requests must include the API Token in the `Authorization` header.
+```http
+Authorization: Bearer <YOUR_API_TOKEN>
+```
+*You can generate API Tokens in the Settings page.*
+
+### Endpoints
+
+#### 1. Get All Projects
+Retrieves a list of all your projects, ordered by creation date (newest first).
+
+*   **URL**: `/api/public/get-projects`
+*   **Method**: `GET`
+*   **Response**: Array of Project objects.
+
+```bash
+curl -X GET "/api/public/get-projects" \
+  -H "Authorization: Bearer <YOUR_TOKEN>"
+```
+
+#### 2. Get Single Project
+Retrieves detailed information about a specific project by its slug.
+
+*   **URL**: `/api/public/get-project/[slug]`
+*   **Method**: `GET`
+*   **URL Params**: `slug` (required)
+*   **Query Params**:
+    *   `content` (optional): Set to `true` to include the generated content in the response.
+
+```bash
+curl -X GET "/api/public/get-project/my-blog-post?content=true" \
+  -H "Authorization: Bearer <YOUR_TOKEN>"
+```

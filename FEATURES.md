@@ -101,3 +101,29 @@ Fill in the dynamic form fields based on your chosen template:
 *   **Dark Mode**: Fully supported dark/light mode for comfortable viewing day or night.
 *   **Responsive Design**: Works perfectly on Desktop, Tablet, and Mobile.
 *   **Performance**: Optimized for speed, so you spend less time waiting and more time creating.
+
+
+## 📝 8. Public API
+
+### **Get Projects**
+*   **URL**: `/api/public/get-projects`
+*   **Method**: `GET`
+*   **Response**: Array of Project objects.
+
+```bash
+curl -X GET "/api/public/get-projects" \
+  -H "Authorization: Bearer <YOUR_TOKEN>"
+```
+
+### **Get Project**
+*   **URL**: `/api/public/get-project/[slug]`
+*   **Method**: `GET`
+*   **URL Params**: `slug` (required)
+*   **Query Params**:
+    *   `content` (optional): Set to `true` to include the generated content in the response.
+
+```bash
+curl -X GET "/api/public/get-project/my-blog-post?content=true" \
+  -H "Authorization: Bearer <YOUR_TOKEN>"
+```
+    
