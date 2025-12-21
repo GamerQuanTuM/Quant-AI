@@ -360,6 +360,58 @@ export default function SettingsPage() {
                                 >
                                     + Generate New Key
                                 </Button>
+
+                                <div className="mt-8 border-t border-border pt-6">
+                                    <h4 className="text-lg font-medium text-foreground mb-4">API Documentation</h4>
+
+                                    <div className="space-y-6">
+                                        {/* Authentication */}
+                                        <div className="space-y-2">
+                                            <h5 className="text-sm font-semibold text-foreground">Authentication</h5>
+                                            <p className="text-sm text-muted-foreground">
+                                                Include your API key in the Authorization header of your requests.
+                                            </p>
+                                            <div className="bg-muted p-3 rounded-md border border-border overflow-x-auto relative group">
+                                                <code className="text-xs font-mono text-foreground">Authorization: Bearer YOUR_API_KEY</code>
+                                            </div>
+                                        </div>
+
+                                        {/* Get Projects */}
+                                        <div className="space-y-2">
+                                            <h5 className="text-sm font-semibold text-foreground">Get All Projects</h5>
+                                            <p className="text-sm text-muted-foreground">Retrieve list of all your projects.</p>
+                                            <div className="bg-muted p-3 rounded-md border border-border overflow-x-auto">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className="text-xs font-mono text-primary bg-primary/10 px-2 py-0.5 rounded">GET</span>
+                                                    <span className="text-xs font-mono text-muted-foreground">/api/public/get-projects</span>
+                                                </div>
+                                                <code className="text-xs font-mono text-foreground block whitespace-pre">
+                                                    {`curl -X GET "${typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/api/public/get-projects" \\
+  -H "Authorization: Bearer YOUR_API_KEY"`}
+                                                </code>
+                                            </div>
+                                        </div>
+
+                                        {/* Get Single Project */}
+                                        <div className="space-y-2">
+                                            <h5 className="text-sm font-semibold text-foreground">Get Project</h5>
+                                            <p className="text-sm text-muted-foreground">Retrieve a specific project by its slug.</p>
+                                            <div className="bg-muted p-3 rounded-md border border-border overflow-x-auto">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className="text-xs font-mono text-primary bg-primary/10 px-2 py-0.5 rounded">GET</span>
+                                                    <span className="text-xs font-mono text-muted-foreground">/api/public/get-project/[slug]</span>
+                                                </div>
+                                                <code className="text-xs font-mono text-foreground block whitespace-pre">
+                                                    {`curl -X GET "${typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com'}/api/public/get-project/my-project-slug?content=true" \\
+  -H "Authorization: Bearer YOUR_API_KEY"`}
+                                                </code>
+                                            </div>
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                Query Params: <code className="bg-muted px-1.5 py-0.5 rounded border border-border text-foreground font-mono">content=true</code> to include project content.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         )}
 
@@ -512,3 +564,6 @@ export default function SettingsPage() {
         </div>
     )
 }
+
+
+//eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbWo3N3oweGowMDAwbzBqbGw1N2lyY2E3IiwiaWF0IjoxNzY2Mjk1ODEyfQ.n3HZvcffH9VM0EIAmPLSIGXThW5oa1iJHvmi21SXEbo

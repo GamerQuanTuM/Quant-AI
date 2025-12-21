@@ -2,17 +2,11 @@
 import { NextResponse } from "next/server";
 import * as jwt from "jsonwebtoken";
 import { rateLimit } from "@/lib/rate-limit";
+import isCustomJwtPayload from "@/lib/jwt";
 
-// Define an interface for your expected JWT payload shape
-interface CustomJwtPayload extends jwt.JwtPayload {
-    userId: string;
-}
 
 type Handler = (req: Request, userId: string, ...args: any[]) => Promise<NextResponse> | NextResponse | Response | Promise<Response>;
 
-function isCustomJwtPayload(decoded: string | jwt.JwtPayload): decoded is CustomJwtPayload {
-    return (decoded as CustomJwtPayload).userId !== undefined;
-}
 
 export const protect = (handler: Handler) => {
     return async (req: Request, ...args: any[]) => {
