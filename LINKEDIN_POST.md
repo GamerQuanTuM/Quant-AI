@@ -9,3 +9,9 @@ Features include AI-generated content (blogs, tweets, LinkedIn posts), Redis-bas
 Stack: Next.js 15 (App Router), Tailwind CSS v4, Node.js, Prisma, Zod, RabbitMQ, PostgreSQL, Redis, and Socket.IO.
 
 #NextJS #TypeScript #AI #WebDevelopment #SoftwareArchitecture #RabbitMQ #FullStack #EventDrivenArchitecture #RealTimeNotifications #Redis #PostgreSQL #SocketIO #NodeJS #Prisma #Zod #LangChain
+
+
+Old Flow: Server -> Save DB -> Emit Socket (All in one process)
+New Flow:
+Worker: Consumes 'notifications' queue -> Saves to DB -> Publishes 'socket_events' to RabbitMQ.
+Server: Consumes 'socket_events' queue -> Emits to connected users
