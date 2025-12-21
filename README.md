@@ -174,7 +174,18 @@ Retrieves detailed information about a specific project by its slug.
     *   `content` (optional): Set to `true` to include the generated content in the response.
 
 ```bash
-curl -X GET "/api/public/get-project/my-blog-post?content=true" \
+curl -X GET "http://localhost:3000/api/public/get-project/my-blog-post?content=true" \
   -H "Authorization: Bearer <YOUR_TOKEN>"
 ```
 
+#### 3. System Health Check
+Check the status of the API and its dependencies (Database, Redis, RabbitMQ).
+
+*   **URL**: `/api/health`
+*   **Method**: `GET`
+*   **Response**: JSON status object.
+
+```bash
+curl -X GET "http://localhost:3000/api/health"
+```
+```
