@@ -112,6 +112,18 @@ npm run worker
 # Starts the RabbitMQ Consumer for DB writes
 ```
 
+### 5. Running with Docker
+Alternatively, you can run the entire stack (Web, Worker, Redis, RabbitMQ) using Docker Compose:
+
+```bash
+docker-compose up -d --build
+```
+This will start the following services:
+*   `content-generator-web`: The Next.js application (Port 3000)
+*   `content-generator-worker`: Background worker for notifications
+*   `content-generator-redis`: Redis service (Port 6379)
+*   `content-generator-rabbitmq`: RabbitMQ service (Ports 5672, 15672)
+
 ---
 
 ## 📂 Project Structure
